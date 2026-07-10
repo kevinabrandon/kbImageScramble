@@ -764,6 +764,15 @@ void kbEngine::MoveHoleLowLevel( int iDirection )
 	m_iCount++;
 }
 
+void kbEngine::MoveHoleManual( int iDirection )
+{
+	if( !m_bHaveImage ) return;
+	mBool bDraw = m_bDraw;
+	m_bDraw = false;
+	MoveHoleLowLevel( iDirection );
+	m_bDraw = bDraw;
+}
+
 void kbEngine::StupidSolve( )
 {
 	kbPoint point;

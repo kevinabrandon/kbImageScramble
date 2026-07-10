@@ -25,6 +25,8 @@
   fieldset legend { font-size: .75rem; color: #888; padding: 0 .3rem; }
   label { display: inline-flex; align-items: center; gap: .3rem; font-size: .9rem; white-space: nowrap; }
   button { font-size: .95rem; padding: .35rem .9rem; cursor: pointer; }
+  .dpad { margin-left: 1rem; }
+  .dpad button { padding: .35rem .55rem; }
   button:disabled { cursor: default; }
   button.primary { font-weight: 600; }
   input[type="number"] { width: 8.5rem; }
@@ -35,6 +37,8 @@
     padding: .5rem; overflow: auto;
   }
   #canvasbox.drag { outline: 3px dashed #59f; }
+  #canvasbox:focus { outline: 3px solid #59f; }
+  #canvasbox:focus-visible { outline: 3px solid #59f; }
   canvas { image-rendering: pixelated; width: 100%; height: auto; max-height: 75vh; object-fit: contain; }
   #placeholder { color: #888; font-size: .95rem; text-align: center; padding: 3rem 1rem; }
   #progresswrap { height: 10px; border: 1px solid #8884; border-radius: 5px; margin: .5rem 0; overflow: hidden; }
@@ -75,6 +79,14 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   <button id="flip">Flip!!</button>
   <button id="stupid" title="sic — the 2008 button, spelling and all. A deliberately greedy solve that chases its own tail: a live demonstration of why Solve!! has to be smarter than this">Stuipd Solve</button>
   <button id="stop" disabled>Stop</button>
+  <span class="dpad">
+    <button id="mleft" class="hole" title="move the hole left (arrow keys work too)">←</button>
+    <button id="mup" class="hole" title="move the hole up">↑</button>
+    <button id="mdown" class="hole" title="move the hole down">↓</button>
+    <button id="mright" class="hole" title="move the hole right">→</button>
+  </span>
+  <span style="font-size:.8rem; color:#888">move the hole yourself — when the image is
+  outlined blue (click it), arrow keys work too</span>
 </fieldset>
 
 <fieldset>
@@ -117,7 +129,7 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   <button class="testimg" data-src="kevin.ppm">kevin.ppm</button>
 </fieldset>
 
-<div id="canvasbox">
+<div id="canvasbox" tabindex="0" title="click to focus; arrow keys move the hole">
   <div id="placeholder">Drop an image here, or click Open</div>
   <canvas id="canvas" hidden></canvas>
 </div>

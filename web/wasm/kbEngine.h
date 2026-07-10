@@ -65,6 +65,10 @@ class kbEngine
 	void FlipSolve( );
 	void StupidSolve( );
 
+	// 2026: one interactive move (raw MoveHoleLowLevel direction code),
+	// bypassing the draw/yield hook so it stays synchronous for UI clicks.
+	void MoveHoleManual( int iDirection );
+
 	void Stop( )	{ m_bStop = true; }
 	bool HaveImage( )	{ return m_bHaveImage; }
 	// Address of the stop flag: lets JS request a stop by writing memory

@@ -80,4 +80,15 @@ for (let j = 0; j < H; j++)
 const flipDiff = diffCount(rotated, flipped);
 check('FlipSolve yields the 180°-rotated image', flipDiff <= 2, `${flipDiff} mismatched pixels`);
 
+// 5. Manual hole moves: one move changes the image; the opposite move undoes
+// it. (After FlipSolve the hole sits top-left, so move right first — moving
+// left there is a boundary no-op, which is itself correct behavior.)
+const before = snapshot();
+Module._eng_move_hole(2); // left (x-1): blocked at boundary
+check('manual move into the boundary is a no-op', diffCount(before, snapshot()) === 0);
+Module._eng_move_hole(3); // right (x+1)
+check('manual move changes the image', diffCount(before, snapshot()) > 0);
+Module._eng_move_hole(2); // left (x-1)
+check('manual move round-trip restores the image', diffCount(before, snapshot()) === 0);
+
 process.exit(failures ? 1 : 0);

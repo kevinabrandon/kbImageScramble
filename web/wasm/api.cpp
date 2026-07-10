@@ -58,6 +58,10 @@ EMSCRIPTEN_KEEPALIVE void eng_scramble( int n, int swirl, int direction )
 	g_Engine.Scramble( n, swirl != 0, direction != 0 );
 }
 
+// Raw direction codes from MoveHoleLowLevel: 0 => y-1 (screen up),
+// 1 => y+1 (screen down), 2 => x-1 (left), 3 => x+1 (right).
+EMSCRIPTEN_KEEPALIVE void eng_move_hole( int dir )	{ g_Engine.MoveHoleManual( dir ); }
+
 EMSCRIPTEN_KEEPALIVE void eng_solve( )			{ g_Engine.Solve( ); }
 EMSCRIPTEN_KEEPALIVE void eng_flip_solve( )		{ g_Engine.FlipSolve( ); }
 EMSCRIPTEN_KEEPALIVE void eng_stupid_solve( )	{ g_Engine.StupidSolve( ); }

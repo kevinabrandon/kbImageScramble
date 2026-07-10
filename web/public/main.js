@@ -67,7 +67,8 @@ function applyDisplaySettings() {
 
 function setRunning(on) {
   running = on;
-  for (const id of ['scramble', 'solve', 'flip', 'stupid', 'open', 'saveppm', 'savepng'])
+  for (const id of ['scramble', 'solve', 'flip', 'stupid', 'open', 'saveppm', 'savepng',
+    'mup', 'mdown', 'mleft', 'mright'])
     $(id).disabled = on;
   $('stop').disabled = !on;
   if (!on) { paint(); updateProgress(); $('status').textContent = ''; }
@@ -97,6 +98,28 @@ $('flip').onclick = () => run('eng_flip_solve');
 $('stupid').onclick = () => run('eng_stupid_solve');
 $('stop').onclick = () => { Module.HEAPU8[ptr.stop] = 1; };
 
+// Manual hole moves. Engine direction codes: 0 => y-1 (screen up),
+// 1 => y+1 (down), 2 => x-1 (left), 3 => x+1 (right).
+function moveHole(dir) {
+  if (running || !Module._eng_have_image()) return;
+  Module._eng_move_hole(dir);
+  paint();
+  // Hand focus to the image so arrow keys keep working after a d-pad click
+  $('canvasbox').focus({ preventScroll: true });
+}
+$('mup').onclick = () => moveHole(0);
+$('mdown').onclick = () => moveHole(1);
+$('mleft').onclick = () => moveHole(2);
+$('mright').onclick = () => moveHole(3);
+
+// Arrow keys move the hole while the image box is focused (blue outline).
+$('canvasbox').addEventListener('keydown', (e) => {
+  const dirs = { ArrowUp: 0, ArrowDown: 1, ArrowLeft: 2, ArrowRight: 3 };
+  if (!(e.key in dirs)) return;
+  e.preventDefault();
+  moveHole(dirs[e.key]);
+});
+
 $('drawevery').onchange = applyDisplaySettings;
 $('delay').oninput = () => { $('delayval').textContent = `${$('delay').value}ms`; applyDisplaySettings(); };
 
@@ -106,6 +129,7 @@ function showCanvas(w, h) {
   canvas.hidden = false;
   $('placeholder').hidden = true;
   paint();
+  $('canvasbox').focus({ preventScroll: true });
 }
 
 function loadIntoEngine(rgba, w, h) {
