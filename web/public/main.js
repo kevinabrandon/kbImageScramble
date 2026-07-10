@@ -214,6 +214,14 @@ async function openFile(file) {
 $('open').onclick = () => $('file').click();
 $('file').onchange = () => { if ($('file').files[0]) openFile($('file').files[0]); };
 
+async function openUrl(src) {
+  const blob = await (await fetch(src)).blob();
+  await openFile(new File([blob], src.split('/').pop()));
+}
+
+for (const b of document.querySelectorAll('.testimg'))
+  b.onclick = () => { if (!running) openUrl(b.dataset.src); };
+
 const box = $('canvasbox');
 box.ondragover = (e) => { e.preventDefault(); box.classList.add('drag'); };
 box.ondragleave = () => box.classList.remove('drag');
@@ -250,7 +258,12 @@ log(' ');
 
 // ?demo — load the bundled 2008 test image (kevin.ppm) and scramble it.
 // &res=N — decimate to N pixels on the short side (e.g. ?demo&res=8).
+// ?img=N — load the NxN gradient test image (e.g. ?img=64), no scramble.
 const params = new URLSearchParams(location.search);
+if (params.has('img')) {
+  const n = +params.get('img');
+  if ([4, 8, 16, 32, 64, 128, 256, 512, 1024].includes(n)) await openUrl(`gradients/grad-${n}.png`);
+}
 if (params.has('demo')) {
   const blob = await (await fetch('kevin.ppm')).blob();
   await openFile(new File([blob], 'kevin.ppm'));
