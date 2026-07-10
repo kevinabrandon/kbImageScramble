@@ -35,8 +35,7 @@
     padding: .5rem; overflow: auto;
   }
   #canvasbox.drag { outline: 3px dashed #59f; }
-  canvas { image-rendering: pixelated; }
-  canvas.stretch { width: 100%; height: auto; }
+  canvas { image-rendering: pixelated; width: 100%; height: auto; max-height: 75vh; object-fit: contain; }
   #placeholder { color: #888; font-size: .95rem; text-align: center; padding: 3rem 1rem; }
   #progresswrap { height: 10px; border: 1px solid #8884; border-radius: 5px; margin: .5rem 0; overflow: hidden; }
   #progress { height: 100%; width: 0%; background: #59f; transition: width .1s linear; }
@@ -84,7 +83,16 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   <label>every <input id="drawevery" type="number" min="1" max="10000000" value="500"> moves</label>
   <label><input id="slow" type="checkbox"> Slow</label>
   <label>delay <input id="delay" type="range" min="0" max="100" value="0"> <span id="delayval">0ms</span></label>
-  <label><input id="stretch" type="checkbox"> Stretch</label>
+</fieldset>
+
+<fieldset>
+  <legend>Resolution</legend>
+  <label>Decimate
+    <input id="res" type="range" min="0" max="100" value="100" disabled>
+    <span id="resval">—</span>
+  </label>
+  <span style="font-size:.8rem; color:#888">slide left to shrink the board (short side stops at 4
+  pixels — a true 15-puzzle) and watch the solver tile by tile; slide right to restore the full photo</span>
 </fieldset>
 
 <fieldset>

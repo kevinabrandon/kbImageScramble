@@ -31,6 +31,10 @@ const ptr = {
 
 let running = false;
 
+// Full-resolution copy of the loaded image, kept so the Resolution slider can
+// decimate down (short side as low as 4px) and restore back up losslessly.
+let source = null; // { rgba: Uint8ClampedArray, w, h }
+
 function paint() {
   const w = canvas.width, h = canvas.height;
   if (!w || !h) return;
@@ -95,7 +99,6 @@ $('stop').onclick = () => { Module.HEAPU8[ptr.stop] = 1; };
 
 $('drawevery').onchange = applyDisplaySettings;
 $('delay').oninput = () => { $('delayval').textContent = `${$('delay').value}ms`; applyDisplaySettings(); };
-$('stretch').onchange = () => canvas.classList.toggle('stretch', $('stretch').checked);
 
 function showCanvas(w, h) {
   canvas.width = w;
@@ -103,6 +106,75 @@ function showCanvas(w, h) {
   canvas.hidden = false;
   $('placeholder').hidden = true;
   paint();
+}
+
+function loadIntoEngine(rgba, w, h) {
+  const buf = Module._malloc(rgba.length);
+  Module.HEAPU8.set(rgba, buf);
+  Module._eng_load_rgba(buf, w, h);
+  Module._free(buf);
+}
+
+// --- Resolution / decimation ---
+
+// Log-scale slider: 0 => short side 4px, 100 => native resolution.
+function dimsForSlider(t) {
+  const S = Math.min(source.w, source.h);
+  if (S <= 4 || t >= 100) return { w: source.w, h: source.h, native: true };
+  const short = Math.min(S, Math.round(4 * Math.pow(S / 4, t / 100)));
+  if (short >= S) return { w: source.w, h: source.h, native: true };
+  const scale = short / S;
+  return source.w <= source.h
+    ? { w: short, h: Math.round(source.h * scale), native: false }
+    : { w: Math.round(source.w * scale), h: short, native: false };
+}
+
+// Downsample by repeated halving (better area averaging than one big jump).
+async function downsample(rgba, sw, sh, tw, th) {
+  let bmp = await createImageBitmap(new ImageData(rgba, sw, sh));
+  let cw = sw, ch = sh;
+  while (cw / 2 >= tw && ch / 2 >= th) {
+    cw = Math.max(tw, Math.round(cw / 2));
+    ch = Math.max(th, Math.round(ch / 2));
+    const off = new OffscreenCanvas(cw, ch);
+    const octx = off.getContext('2d');
+    octx.imageSmoothingEnabled = true;
+    octx.imageSmoothingQuality = 'high';
+    octx.drawImage(bmp, 0, 0, cw, ch);
+    bmp = off.transferToImageBitmap();
+  }
+  const off = new OffscreenCanvas(tw, th);
+  const octx = off.getContext('2d');
+  octx.imageSmoothingEnabled = true;
+  octx.imageSmoothingQuality = 'high';
+  octx.drawImage(bmp, 0, 0, tw, th);
+  return octx.getImageData(0, 0, tw, th).data;
+}
+
+async function applyResolution() {
+  if (!source || running) return;
+  const d = dimsForSlider(+$('res').value);
+  const rgba = d.native ? source.rgba : await downsample(source.rgba, source.w, source.h, d.w, d.h);
+  loadIntoEngine(rgba, d.w, d.h);
+  showCanvas(d.w, d.h);
+  log(d.native ? `Restored full resolution (${d.w}x${d.h})` : `Decimated to ${d.w}x${d.h} (${d.w * d.h - 1} tiles + 1 hole)`);
+  log(' ');
+}
+
+function updateResReadout() {
+  if (!source) return;
+  const d = dimsForSlider(+$('res').value);
+  $('resval').textContent = `${d.w}×${d.h}`;
+}
+
+$('res').oninput = updateResReadout;
+$('res').onchange = applyResolution;
+
+function setSource(rgba, w, h) {
+  source = { rgba, w, h };
+  $('res').value = 100;
+  $('res').disabled = false;
+  updateResReadout();
 }
 
 async function openFile(file) {
@@ -114,16 +186,26 @@ async function openFile(file) {
     const ok = Module._eng_load_ppm(path);
     Module._free(path);
     if (!ok) { log(`Unable To Open File: ${file.name}`); return; }
+    // Snapshot the loaded PPM back out of the engine as the full-res source.
+    const w = Module._eng_width(), h = Module._eng_height();
+    const rgba = new Uint8ClampedArray(w * h * 4);
+    let src = Module._eng_pixels();
+    const rgb = Module.HEAPU8;
+    for (let i = 0, o = 0; i < w * h; i++, o += 4) {
+      rgba[o] = rgb[src++];
+      rgba[o + 1] = rgb[src++];
+      rgba[o + 2] = rgb[src++];
+      rgba[o + 3] = 255;
+    }
+    setSource(rgba, w, h);
   } else {
     const bmp = await createImageBitmap(file);
     const off = new OffscreenCanvas(bmp.width, bmp.height);
     const octx = off.getContext('2d');
     octx.drawImage(bmp, 0, 0);
     const rgba = octx.getImageData(0, 0, bmp.width, bmp.height).data;
-    const buf = Module._malloc(rgba.length);
-    Module.HEAPU8.set(rgba, buf);
-    Module._eng_load_rgba(buf, bmp.width, bmp.height);
-    Module._free(buf);
+    setSource(rgba, bmp.width, bmp.height);
+    loadIntoEngine(rgba, bmp.width, bmp.height);
   }
   log(`Opened File: ${file.name}`);
   showCanvas(Module._eng_width(), Module._eng_height());
@@ -167,8 +249,17 @@ log('Engine: original 2008 C++ via WebAssembly.');
 log(' ');
 
 // ?demo — load the bundled 2008 test image (kevin.ppm) and scramble it.
-if (new URLSearchParams(location.search).has('demo')) {
+// &res=N — decimate to N pixels on the short side (e.g. ?demo&res=8).
+const params = new URLSearchParams(location.search);
+if (params.has('demo')) {
   const blob = await (await fetch('kevin.ppm')).blob();
   await openFile(new File([blob], 'kevin.ppm'));
+  if (params.has('res')) {
+    const short = Math.max(4, Math.min(Math.min(source.w, source.h), +params.get('res') || 4));
+    const S = Math.min(source.w, source.h);
+    $('res').value = Math.round(100 * Math.log(short / 4) / Math.log(S / 4)) || 0;
+    updateResReadout();
+    await applyResolution();
+  }
   $('scramble').click();
 }
