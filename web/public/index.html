@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kbImageScramble — Image Scramble Program</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: system-ui, sans-serif;
+    margin: 0 auto; padding: 1rem; max-width: 1100px;
+  }
+  header { display: flex; align-items: baseline; gap: 1rem; }
+  h1 { font-size: 1.3rem; margin: 0 0 .25rem; }
+  header a { font-size: .85rem; }
+  .subtitle { color: #888; font-size: .85rem; margin: 0 0 1rem; }
+  #about { border: 1px solid #8884; border-radius: 6px; padding: .2rem .8rem .4rem; margin-top: 1rem; }
+  #about h2 { font-size: 1rem; margin: .5rem 0 0; }
+  #about p { font-size: .9rem; line-height: 1.45; }
+  fieldset {
+    border: 1px solid #8884; border-radius: 6px;
+    display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center;
+    padding: .6rem .8rem; margin: 0 0 .75rem;
+  }
+  fieldset legend { font-size: .75rem; color: #888; padding: 0 .3rem; }
+  label { display: inline-flex; align-items: center; gap: .3rem; font-size: .9rem; white-space: nowrap; }
+  button { font-size: .95rem; padding: .35rem .9rem; cursor: pointer; }
+  button:disabled { cursor: default; }
+  button.primary { font-weight: 600; }
+  input[type="number"] { width: 8.5rem; }
+  #n { width: 10rem; }
+  #canvasbox {
+    border: 1px solid #8884; border-radius: 6px; min-height: 200px;
+    display: flex; align-items: center; justify-content: center;
+    padding: .5rem; overflow: auto;
+  }
+  #canvasbox.drag { outline: 3px dashed #59f; }
+  canvas { image-rendering: pixelated; }
+  canvas.stretch { width: 100%; height: auto; }
+  #placeholder { color: #888; font-size: .95rem; text-align: center; padding: 3rem 1rem; }
+  #progresswrap { height: 10px; border: 1px solid #8884; border-radius: 5px; margin: .5rem 0; overflow: hidden; }
+  #progress { height: 100%; width: 0%; background: #59f; transition: width .1s linear; }
+  #status { font-size: .85rem; color: #888; min-height: 1.2em; }
+  #log {
+    width: 100%; height: 8rem; box-sizing: border-box;
+    font-family: ui-monospace, monospace; font-size: .8rem;
+    background: transparent; color: inherit; border: 1px solid #8884; border-radius: 6px;
+    resize: vertical;
+  }
+  footer { font-size: .75rem; color: #888; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>kbImageScramble</h1>
+  <a href="https://github.com/kevinabrandon/kbImageScramble">GitHub</a>
+</header>
+<p class="subtitle">A 15-puzzle where every tile is a pixel of a photograph. Scramble a photo
+into noise with up to a billion random tile moves, then hit Solve!! and watch the hole run
+through the image, escorting every pixel back home row by row until the picture reassembles
+itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
+
+<fieldset>
+  <legend>Scramble</legend>
+  <label>Number of Scrambles
+    <input id="n" type="number" min="1" max="1000000000" step="1" value="100000">
+  </label>
+  <label><input id="swirl" type="checkbox"> Swirl</label>
+  <label><input id="direction" type="checkbox"> Toggle Direction</label>
+  <button id="scramble" class="primary">Scramble!</button>
+</fieldset>
+
+<fieldset>
+  <legend>Solve</legend>
+  <button id="solve" class="primary">Solve!!</button>
+  <button id="flip">Flip!!</button>
+  <button id="stupid" title="sic — the 2008 button, spelling and all. A deliberately greedy solve that chases its own tail: a live demonstration of why Solve!! has to be smarter than this">Stuipd Solve</button>
+  <button id="stop" disabled>Stop</button>
+</fieldset>
+
+<fieldset>
+  <legend>Display</legend>
+  <label><input id="redraw" type="checkbox" checked> ReDraw</label>
+  <label>every <input id="drawevery" type="number" min="1" max="10000000" value="500"> moves</label>
+  <label><input id="slow" type="checkbox"> Slow</label>
+  <label>delay <input id="delay" type="range" min="0" max="100" value="0"> <span id="delayval">0ms</span></label>
+  <label><input id="stretch" type="checkbox"> Stretch</label>
+</fieldset>
+
+<fieldset>
+  <legend>File</legend>
+  <button id="open">Open</button>
+  <input id="file" type="file" accept="image/*,.ppm" hidden>
+  <button id="saveppm">Save PPM</button>
+  <button id="savepng">Save PNG</button>
+</fieldset>
+
+<div id="canvasbox">
+  <div id="placeholder">Drop an image here, or click Open</div>
+  <canvas id="canvas" hidden></canvas>
+</div>
+<div id="progresswrap"><div id="progress"></div></div>
+<div id="status"></div>
+
+<textarea id="log" readonly spellcheck="false"></textarea>
+
+<section id="about">
+  <h2>About</h2>
+  <p>kbImageScramble turns a photograph into a 15-puzzle with hundreds of thousands of
+  tiles — every single pixel is a tile, with one hole. Load any image and scramble it:
+  the hole wanders the picture swapping pixels as it goes, and somewhere past a few
+  million moves the photo dissolves into static. Then hit Solve!! and watch it come
+  back — the solver routes the hole around the board to walk each pixel home, filling in
+  the image row by row like it's being redrawn, and it works no matter how scrambled the
+  board is (a billion moves? doesn't matter). Flip!! solves the puzzle into the
+  upside-down image instead; Swirl scrambles with a drifting bias so the photo smears
+  instead of dissolving; and Stuipd Solve <em>[sic]</em> tries to solve greedily and
+  visibly fails forever — a demonstration of why the real solver has to be clever.</p>
+  <p>It began as a brother-to-brother coding challenge in January 2008. The engine running
+  here is that original C++ code, compiled unmodified to WebAssembly; the 2008 sources are
+  preserved offline and may be published someday. Code for this app is on
+  <a href="https://github.com/kevinabrandon/kbImageScramble">GitHub</a>.</p>
+</section>
+
+<footer>
+  <strong>kbImageScramble</strong> — algorithm: Kevin Brandon, January 2008, running
+  unmodified via Emscripten/Asyncify. UI: 2026.
+  <a href="https://github.com/kevinabrandon/kbImageScramble">GitHub</a>
+</footer>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
