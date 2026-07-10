@@ -65,13 +65,58 @@ function applyDisplaySettings() {
   Module.HEAP32[ptr.slowMs >> 2] = +$('delay').value;
 }
 
+// --- Tile numbers (idle-only overlay) ---
+// The number on a tile is its home index + 1 (row-major), read from the
+// engine's scrambler map. Drawn only while nothing is running, so calling
+// exports is safe (Asyncify forbids reentry mid-run), and only when tiles
+// render large enough to be readable.
+const overlay = $('overlay');
+const octx = overlay.getContext('2d');
+
+function drawNumbers() {
+  const w = canvas.width, h = canvas.height;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  overlay.width = Math.round(rect.width * dpr);
+  overlay.height = Math.round(rect.height * dpr);
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+  if (running || !w || !$('numbers').checked || w * h > 4096) return;
+  if (!Module._eng_have_image()) return;
+  // object-fit: contain letterboxes the image inside the element — map the
+  // tile grid onto the actual content rectangle, not the element box.
+  const scale = Math.min(rect.width / w, rect.height / h);
+  if (scale < 18) return; // tiles too small to read
+  const tile = scale * dpr;
+  const offX = (overlay.width - w * tile) / 2;
+  const offY = (overlay.height - h * tile) / 2;
+  const hole = w * h - 1;
+  octx.font = `${Math.round(tile * 0.38)}px system-ui, sans-serif`;
+  octx.textAlign = 'center';
+  octx.textBaseline = 'middle';
+  octx.lineWidth = Math.max(1.5, tile * 0.05);
+  octx.strokeStyle = 'rgba(0,0,0,.8)';
+  octx.fillStyle = '#fff';
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const idx = Module._eng_home_index(x, y);
+      if (idx === hole) continue;
+      const label = String(idx + 1);
+      octx.strokeText(label, offX + (x + 0.5) * tile, offY + (y + 0.5) * tile);
+      octx.fillText(label, offX + (x + 0.5) * tile, offY + (y + 0.5) * tile);
+    }
+}
+
+$('numbers').onchange = drawNumbers;
+window.addEventListener('resize', drawNumbers);
+
 function setRunning(on) {
   running = on;
   for (const id of ['scramble', 'solve', 'flip', 'stupid', 'open', 'saveppm', 'savepng',
     'mup', 'mdown', 'mleft', 'mright'])
     $(id).disabled = on;
   $('stop').disabled = !on;
-  if (!on) { paint(); updateProgress(); $('status').textContent = ''; }
+  if (on) octx.clearRect(0, 0, overlay.width, overlay.height);
+  else { paint(); updateProgress(); $('status').textContent = ''; drawNumbers(); }
 }
 
 async function run(name, ...args) {
@@ -104,6 +149,7 @@ function moveHole(dir) {
   if (running || !Module._eng_have_image()) return;
   Module._eng_move_hole(dir);
   paint();
+  drawNumbers();
   // Hand focus to the image so arrow keys keep working after a d-pad click
   $('canvasbox').focus({ preventScroll: true });
 }
@@ -126,10 +172,11 @@ $('delay').oninput = () => { $('delayval').textContent = `${$('delay').value}ms`
 function showCanvas(w, h) {
   canvas.width = w;
   canvas.height = h;
-  canvas.hidden = false;
+  $('canvaswrap').hidden = false;
   $('placeholder').hidden = true;
   paint();
   $('canvasbox').focus({ preventScroll: true });
+  drawNumbers();
 }
 
 function loadIntoEngine(rgba, w, h) {

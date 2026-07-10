@@ -80,15 +80,32 @@ for (let j = 0; j < H; j++)
 const flipDiff = diffCount(rotated, flipped);
 check('FlipSolve yields the 180°-rotated image', flipDiff <= 2, `${flipDiff} mismatched pixels`);
 
+// 4.5 Home indices (tile numbers): after FlipSolve the board is the rotated
+// image, so re-scramble and Solve to a clean state, then home indices must be
+// identity: tile at (x,y) has home index y*W+x, and the hole (W*H-1) sits
+// bottom-right.
+Module._eng_scramble(5000, 0, 0);
+Module._eng_solve();
+check('home index identity after Solve',
+  Module._eng_home_index(0, 0) === 0
+  && Module._eng_home_index(1, 0) === 1
+  && Module._eng_home_index(0, 1) === W
+  && Module._eng_home_index(W - 1, H - 1) === W * H - 1);
+Module._eng_scramble(5000, 0, 0);
+let moved = 0;
+for (let x = 0; x < W; x++) if (Module._eng_home_index(x, 0) !== x) moved++;
+check('home indices track the scramble', moved > 0, `${moved}/${W} top-row tiles displaced`);
+Module._eng_solve();
+
 // 5. Manual hole moves: one move changes the image; the opposite move undoes
-// it. (After FlipSolve the hole sits top-left, so move right first — moving
-// left there is a boundary no-op, which is itself correct behavior.)
+// it. (The board was just solved, so the hole sits bottom-right — moving
+// right there is a boundary no-op, which is itself correct behavior.)
 const before = snapshot();
-Module._eng_move_hole(2); // left (x-1): blocked at boundary
+Module._eng_move_hole(3); // right (x+1): blocked at boundary
 check('manual move into the boundary is a no-op', diffCount(before, snapshot()) === 0);
-Module._eng_move_hole(3); // right (x+1)
-check('manual move changes the image', diffCount(before, snapshot()) > 0);
 Module._eng_move_hole(2); // left (x-1)
+check('manual move changes the image', diffCount(before, snapshot()) > 0);
+Module._eng_move_hole(3); // right (x+1)
 check('manual move round-trip restores the image', diffCount(before, snapshot()) === 0);
 
 process.exit(failures ? 1 : 0);

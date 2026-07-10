@@ -79,6 +79,9 @@ class kbEngine
 	int Height( )	{ return m_Image.Height( ); }
 	unsigned char *Pixels( )	{ return m_Image.GetRawPixels( ); }
 
+	// 2026: home position of the pixel currently at (x,y) -- its tile number.
+	kbPoint Home( int x, int y )	{ return m_ScramblerMap.GetPoint( x, y ); }
+
 	double AvgDistance( )	{ return m_ScramblerMap.GetAvgDistance( ); }
 	int MaxDistance( )		{ return m_ScramblerMap.GetMaxDistance( ); }
 	int MinDistance( )		{ return m_ScramblerMap.GetMinDistance( ); }

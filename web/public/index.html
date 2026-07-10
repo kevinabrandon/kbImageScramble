@@ -39,7 +39,9 @@
   #canvasbox.drag { outline: 3px dashed #59f; }
   #canvasbox:focus { outline: 3px solid #59f; }
   #canvasbox:focus-visible { outline: 3px solid #59f; }
+  #canvaswrap { position: relative; width: 100%; }
   canvas { image-rendering: pixelated; width: 100%; height: auto; max-height: 75vh; object-fit: contain; }
+  #overlay { position: absolute; inset: 0; pointer-events: none; image-rendering: auto; }
   #placeholder { color: #888; font-size: .95rem; text-align: center; padding: 3rem 1rem; }
   #progresswrap { height: 10px; border: 1px solid #8884; border-radius: 5px; margin: .5rem 0; overflow: hidden; }
   #progress { height: 100%; width: 0%; background: #59f; transition: width .1s linear; }
@@ -93,6 +95,7 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   <legend>Display</legend>
   <label><input id="redraw" type="checkbox" checked> ReDraw</label>
   <label>every <input id="drawevery" type="number" min="1" max="10000000" value="500"> moves</label>
+  <label><input id="numbers" type="checkbox" checked> Tile #s</label>
   <label><input id="slow" type="checkbox"> Slow</label>
   <label>delay <input id="delay" type="range" min="0" max="100" value="0"> <span id="delayval">0ms</span></label>
 </fieldset>
@@ -131,7 +134,10 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
 
 <div id="canvasbox" tabindex="0" title="click to focus; arrow keys move the hole">
   <div id="placeholder">Drop an image here, or click Open</div>
-  <canvas id="canvas" hidden></canvas>
+  <div id="canvaswrap" hidden>
+    <canvas id="canvas"></canvas>
+    <canvas id="overlay"></canvas>
+  </div>
 </div>
 <div id="progresswrap"><div id="progress"></div></div>
 <div id="status"></div>

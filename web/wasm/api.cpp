@@ -72,6 +72,14 @@ EMSCRIPTEN_KEEPALIVE int eng_width( )			{ return g_Engine.Width( ); }
 EMSCRIPTEN_KEEPALIVE int eng_height( )			{ return g_Engine.Height( ); }
 EMSCRIPTEN_KEEPALIVE unsigned char *eng_pixels( ) { return g_Engine.Pixels( ); }
 
+// Row-major home index of the tile at (x,y); the hole's home is W*H-1.
+// Idle-time only, like every other export (Asyncify forbids reentry mid-run).
+EMSCRIPTEN_KEEPALIVE int eng_home_index( int x, int y )
+{
+	kbPoint p = g_Engine.Home( x, y );
+	return p.y * g_Engine.Width( ) + p.x;
+}
+
 EMSCRIPTEN_KEEPALIVE unsigned int eng_count( )		{ return g_Engine.m_iCount; }
 EMSCRIPTEN_KEEPALIVE int eng_pixels_solved( )		{ return g_Engine.m_iPixelsSolved; }
 EMSCRIPTEN_KEEPALIVE double eng_avg_distance( )		{ return g_Engine.AvgDistance( ); }
