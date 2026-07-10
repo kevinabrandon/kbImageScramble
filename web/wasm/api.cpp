@@ -3,7 +3,7 @@
 // hooks the engine calls back through. Browser-only glue; no algorithm here.
 //
 
-#include "engine.h"
+#include "kbEngine.h"
 #include <emscripten.h>
 
 static kbEngine g_Engine;

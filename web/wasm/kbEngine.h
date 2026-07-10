@@ -2,7 +2,7 @@
 // Kevin Brandon
 // January 2008 / July 2026
 //
-// engine.h -- The Image Scramble engine, extracted from MainScreen.cpp of the
+// kbEngine.h -- The Image Scramble engine, extracted from MainScreen.cpp of the
 // original 2008 Win32 program so it can run anywhere (here: WebAssembly).
 //
 // The scramble/solve algorithm methods are transplanted from MainScreen.cpp

@@ -2,7 +2,7 @@
 // Kevin Brandon
 // January 2008 / July 2026
 //
-// engine.cpp -- The Image Scramble engine.
+// kbEngine.cpp -- The Image Scramble engine.
 //
 // The functions below are transplanted from the 2008 MainScreen.cpp
 // (original sources preserved offline). Algorithm bodies are unchanged; the
@@ -13,7 +13,7 @@
 //   - GetDigitBoxValue(eN) etc.      -> plain parameters
 //=============================================================================
 
-#include "engine.h"
+#include "kbEngine.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

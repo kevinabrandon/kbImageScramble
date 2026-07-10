@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 
 emcc -O2 \
   -include msvc_compat.h \
-  kbImageMap.cpp engine.cpp api.cpp \
+  kbImageMap.cpp kbEngine.cpp api.cpp \
   -o ../public/engine.js \
   -sMODULARIZE=1 \
   -sEXPORT_ES6=1 \
