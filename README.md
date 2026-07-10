@@ -13,6 +13,14 @@ image instead; **Swirl** scrambles with a drifting bias so the photo smears rath
 dissolves; **Stuipd Solve** *[sic]* solves greedily and visibly fails forever, on purpose.
 **ReDraw**/**Slow** control how much of the action you watch live.
 
+## History
+
+Born from a brother-to-brother coding challenge in January 2008: who could first
+auto-solve a 15-puzzle — and then, what if instead of 15 tiles it was every pixel of a
+photograph? The algorithm was worked out by solving a physical 15-puzzle by hand and
+writing down the steps. The original 2008 sources are preserved offline and may be
+published here someday.
+
 ## Running / building
 
 The app is static files in `web/public/` — serve them any way you like:
@@ -28,11 +36,3 @@ rebuild it after touching `web/wasm/`, install [emsdk](https://emscripten.org) a
 ./web/wasm/build.sh
 node web/test/smoke.mjs   # scrambles + solves a test image, asserts pixel-perfect restore
 ```
-
-## History
-
-Born from a brother-to-brother coding challenge in January 2008: who could first
-auto-solve a 15-puzzle — and then, what if instead of 15 tiles it was every pixel of a
-photograph? The algorithm was worked out by solving a physical 15-puzzle by hand and
-writing down the steps. The original 2008 sources are preserved offline and may be
-published here someday.
