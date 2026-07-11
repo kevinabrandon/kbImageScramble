@@ -30,6 +30,7 @@ const ptr = {
 };
 
 let running = false;
+let currentOp = null;
 
 // Full-resolution copy of the loaded image, kept so the Resolution slider can
 // decimate down (short side as low as 4px) and restore back up losslessly.
@@ -54,44 +55,117 @@ function paint() {
 function updateProgress() {
   const total = canvas.width * canvas.height;
   const solved = Module.HEAP32[ptr.solved >> 2];
-  const count = Module.HEAPU32[ptr.count >> 2];
-  $('progress').style.width = total ? `${(100 * solved / total).toFixed(1)}%` : '0%';
+  // The engine's reporting counter is a double (exact to 2^53) — the uint32
+  // counter wraps at ~4.3e9, which big FlipSolves genuinely exceed.
+  const count = Module.HEAPF64[ptr.count >> 3];
+  // Progress tracks the solvers; an endless scramble has no destination.
+  const pct = currentOp === 'eng_scramble' ? 0 : total ? 100 * solved / total : 0;
+  $('progress').style.width = `${pct.toFixed(1)}%`;
   $('status').textContent = running ? `moves: ${count.toLocaleString()}` : '';
 }
 
-function applyDisplaySettings() {
-  // Live-adjustable mid-run (heap writes, not calls)
-  Module.HEAP32[ptr.drawEvery >> 2] = Math.max(1, +$('drawevery').value || 1);
-  Module.HEAP32[ptr.slowMs >> 2] = +$('delay').value;
+// Single speed ladder, fastest (right) to slowest (left):
+// slider 15..8 -> redraw every 10^7 .. 10^0 moves with no delay;
+// slider  7..0 -> redraw every move with a 1, 2, 4, ... 128 ms delay.
+function speedParams() {
+  const s = +$('speed').value;
+  if (s >= 8) return { every: Math.pow(10, s - 8), delay: 0 };
+  return { every: 1, delay: 1 << (7 - s) };
 }
+
+function applySpeed() {
+  const p = speedParams();
+  $('speedval').textContent = p.delay ? `draw every move + ${p.delay}ms`
+    : p.every === 1 ? 'draw every move'
+    : `draw every ${p.every.toLocaleString()} moves`;
+  // Live-adjustable mid-run (heap writes, not calls)
+  Module.HEAP32[ptr.drawEvery >> 2] = p.every;
+  Module.HEAP32[ptr.slowMs >> 2] = p.delay;
+}
+
+// --- Tile numbers (idle-only overlay) ---
+// The number on a tile is its home index + 1 (row-major), read from the
+// engine's scrambler map. Drawn only while nothing is running, so calling
+// exports is safe (Asyncify forbids reentry mid-run), and only when tiles
+// render large enough to be readable.
+const overlay = $('overlay');
+const octx = overlay.getContext('2d');
+
+function drawNumbers() {
+  const w = canvas.width, h = canvas.height;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  overlay.width = Math.round(rect.width * dpr);
+  overlay.height = Math.round(rect.height * dpr);
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+  if (running || !w || !$('numbers').checked || w * h > 4096) return;
+  if (!Module._eng_have_image()) return;
+  // object-fit: contain letterboxes the image inside the element — map the
+  // tile grid onto the actual content rectangle, not the element box.
+  const scale = Math.min(rect.width / w, rect.height / h);
+  if (scale < 18) return; // tiles too small to read
+  const tile = scale * dpr;
+  const offX = (overlay.width - w * tile) / 2;
+  const offY = (overlay.height - h * tile) / 2;
+  const hole = w * h - 1;
+  octx.font = `${Math.round(tile * 0.38)}px system-ui, sans-serif`;
+  octx.textAlign = 'center';
+  octx.textBaseline = 'middle';
+  octx.lineJoin = 'round'; // miter joins spike on tight glyph corners (the "2" starburst)
+  octx.lineWidth = Math.max(1.5, tile * 0.05);
+  octx.strokeStyle = 'rgba(0,0,0,.8)';
+  octx.fillStyle = '#fff';
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const idx = Module._eng_home_index(x, y);
+      if (idx === hole) continue;
+      const label = String(idx + 1);
+      octx.strokeText(label, offX + (x + 0.5) * tile, offY + (y + 0.5) * tile);
+      octx.fillText(label, offX + (x + 0.5) * tile, offY + (y + 0.5) * tile);
+    }
+}
+
+$('numbers').onchange = drawNumbers;
+window.addEventListener('resize', drawNumbers);
 
 function setRunning(on) {
   running = on;
-  for (const id of ['scramble', 'solve', 'flip', 'stupid', 'open', 'saveppm', 'savepng',
+  const scrambling = on && currentOp === 'eng_scramble';
+  for (const id of ['solve', 'flip', 'stupid', 'open', 'save',
     'mup', 'mdown', 'mleft', 'mright'])
     $(id).disabled = on;
+  // The scramble button stays live during its own run: it's the off switch.
+  $('scramble').disabled = on && !scrambling;
+  $('scramble').textContent = scrambling ? 'Stop Scrambling' : 'Scramble!';
   $('stop').disabled = !on;
-  if (!on) { paint(); updateProgress(); $('status').textContent = ''; }
+  for (const b of document.querySelectorAll('.testimg')) b.disabled = on;
+  $('res').disabled = on || !source;
+  if (on) octx.clearRect(0, 0, overlay.width, overlay.height);
+  else { paint(); updateProgress(); $('status').textContent = ''; drawNumbers(); }
 }
 
 async function run(name, ...args) {
   if (!Module._eng_have_image()) { log('Open an image first.'); return; }
-  // ReDraw off means no yields: the browser freezes until done, like the 2008
-  // program's worker thread pegging a core. Warn once in the log.
-  if (!$('redraw').checked) log(`${name} running with ReDraw off; page may be unresponsive until done...`);
-  Module._eng_set_draw($('redraw').checked ? 1 : 0, Math.max(1, +$('drawevery').value || 1),
-    $('slow').checked ? 1 : 0, +$('delay').value);
+  const p = speedParams();
+  Module._eng_set_draw(1, p.every, 0, p.delay);
+  currentOp = name;
   setRunning(true);
   try {
     await Module.ccall(name, null, ['number', 'number', 'number'], args, { async: true });
   } finally {
+    currentOp = null;
     setRunning(false);
   }
 }
 
+// Scramble runs "forever" (1e15 moves ≈ years) until stopped — the button
+// toggles, and the 2008 engine's own m_bStop checks are the off switch.
 $('scramble').onclick = () => {
-  const n = Math.min(1000000000, Math.max(1, Math.floor(+$('n').value || 1)));
-  run('eng_scramble', n, $('swirl').checked ? 1 : 0, $('direction').checked ? 1 : 0);
+  if (running) {
+    if (currentOp === 'eng_scramble') Module.HEAPU8[ptr.stop] = 1;
+    return;
+  }
+  run('eng_scramble', 1e15, $('swirl').checked ? 1 : 0, $('direction').checked ? 1 : 0);
 };
 $('solve').onclick = () => run('eng_solve');
 $('flip').onclick = () => run('eng_flip_solve');
@@ -104,6 +178,7 @@ function moveHole(dir) {
   if (running || !Module._eng_have_image()) return;
   Module._eng_move_hole(dir);
   paint();
+  drawNumbers();
   // Hand focus to the image so arrow keys keep working after a d-pad click
   $('canvasbox').focus({ preventScroll: true });
 }
@@ -120,16 +195,17 @@ $('canvasbox').addEventListener('keydown', (e) => {
   moveHole(dirs[e.key]);
 });
 
-$('drawevery').onchange = applyDisplaySettings;
-$('delay').oninput = () => { $('delayval').textContent = `${$('delay').value}ms`; applyDisplaySettings(); };
+$('speed').oninput = applySpeed;
+applySpeed();
 
 function showCanvas(w, h) {
   canvas.width = w;
   canvas.height = h;
-  canvas.hidden = false;
+  $('canvaswrap').hidden = false;
   $('placeholder').hidden = true;
   paint();
   $('canvasbox').focus({ preventScroll: true });
+  drawNumbers();
 }
 
 function loadIntoEngine(rgba, w, h) {
@@ -255,15 +331,7 @@ box.ondrop = (e) => {
   if (e.dataTransfer.files[0]) openFile(e.dataTransfer.files[0]);
 };
 
-$('saveppm').onclick = () => {
-  if (!Module._eng_have_image()) return;
-  const path = Module.stringToNewUTF8('/out.ppm');
-  Module._eng_save_ppm(path);
-  Module._free(path);
-  const bytes = Module.FS.readFile('/out.ppm');
-  download(new Blob([bytes]), 'scrambled.ppm');
-};
-$('savepng').onclick = () => {
+$('save').onclick = () => {
   if (!Module._eng_have_image()) return;
   canvas.toBlob((blob) => download(blob, 'scrambled.png'), 'image/png');
 };

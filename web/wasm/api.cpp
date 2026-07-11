@@ -53,7 +53,7 @@ EMSCRIPTEN_KEEPALIVE int eng_save_ppm( const char *path )
 	return g_Engine.SavePPM( path ) ? 1 : 0;
 }
 
-EMSCRIPTEN_KEEPALIVE void eng_scramble( int n, int swirl, int direction )
+EMSCRIPTEN_KEEPALIVE void eng_scramble( double n, int swirl, int direction )
 {
 	g_Engine.Scramble( n, swirl != 0, direction != 0 );
 }
@@ -72,7 +72,15 @@ EMSCRIPTEN_KEEPALIVE int eng_width( )			{ return g_Engine.Width( ); }
 EMSCRIPTEN_KEEPALIVE int eng_height( )			{ return g_Engine.Height( ); }
 EMSCRIPTEN_KEEPALIVE unsigned char *eng_pixels( ) { return g_Engine.Pixels( ); }
 
-EMSCRIPTEN_KEEPALIVE unsigned int eng_count( )		{ return g_Engine.m_iCount; }
+// Row-major home index of the tile at (x,y); the hole's home is W*H-1.
+// Idle-time only, like every other export (Asyncify forbids reentry mid-run).
+EMSCRIPTEN_KEEPALIVE int eng_home_index( int x, int y )
+{
+	kbPoint p = g_Engine.Home( x, y );
+	return p.y * g_Engine.Width( ) + p.x;
+}
+
+EMSCRIPTEN_KEEPALIVE double eng_count( )			{ return g_Engine.m_dCount; }
 EMSCRIPTEN_KEEPALIVE int eng_pixels_solved( )		{ return g_Engine.m_iPixelsSolved; }
 EMSCRIPTEN_KEEPALIVE double eng_avg_distance( )		{ return g_Engine.AvgDistance( ); }
 EMSCRIPTEN_KEEPALIVE int eng_max_distance( )		{ return g_Engine.MaxDistance( ); }
@@ -91,7 +99,7 @@ EMSCRIPTEN_KEEPALIVE void eng_set_draw( int on, int every, int slow, int delayMs
 // Raw addresses, fetched once at startup: JS reads/writes these through the
 // heap views while the engine is suspended (Asyncify forbids reentry).
 EMSCRIPTEN_KEEPALIVE unsigned char *eng_stop_ptr( )	{ return (unsigned char *) g_Engine.StopFlag( ); }
-EMSCRIPTEN_KEEPALIVE unsigned int *eng_count_ptr( )	{ return &g_Engine.m_iCount; }
+EMSCRIPTEN_KEEPALIVE double *eng_count_ptr( )		{ return &g_Engine.m_dCount; }
 EMSCRIPTEN_KEEPALIVE int *eng_pixels_solved_ptr( )	{ return &g_Engine.m_iPixelsSolved; }
 EMSCRIPTEN_KEEPALIVE int *eng_draw_every_ptr( )		{ return &g_Engine.m_iDrawEvery; }
 EMSCRIPTEN_KEEPALIVE int *eng_slow_ms_ptr( )		{ return &g_iSlowMs; }

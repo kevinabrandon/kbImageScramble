@@ -49,7 +49,9 @@ class kbEngine
 	public:
 	kbEngine( );
 
-	mUInt				m_iCount;
+	mUInt				m_iCount;		// 2008 counter: feeds the swirl/draw modulos; wraps at 2^32
+	double				m_dCount;		// 2026: exact move count for reporting (uint32 wraps ~4.3e9,
+										// which a FlipSolve of a 1024x1024 actually exceeds)
 	mInt				m_iPixelsSolved;
 
 	mBool				m_bDraw;			// "ReDraw" checkbox
@@ -60,7 +62,9 @@ class kbEngine
 	bool LoadPPM( const char *filename );						// was OpenNewFile (.ppm branch)
 	bool SavePPM( const char *filename );
 
-	void Scramble( int nTimes, bool bSwirl, bool bDirection );
+	// nTimes is double (as the 2008 GetDigitBoxValue was) so counts beyond
+	// int32 -- up to 1e10 from the UI -- work.
+	void Scramble( double nTimes, bool bSwirl, bool bDirection );
 	void Solve( );
 	void FlipSolve( );
 	void StupidSolve( );
@@ -78,6 +82,9 @@ class kbEngine
 	int Width( )	{ return m_Image.Width( ); }
 	int Height( )	{ return m_Image.Height( ); }
 	unsigned char *Pixels( )	{ return m_Image.GetRawPixels( ); }
+
+	// 2026: home position of the pixel currently at (x,y) -- its tile number.
+	kbPoint Home( int x, int y )	{ return m_ScramblerMap.GetPoint( x, y ); }
 
 	double AvgDistance( )	{ return m_ScramblerMap.GetAvgDistance( ); }
 	int MaxDistance( )		{ return m_ScramblerMap.GetMaxDistance( ); }

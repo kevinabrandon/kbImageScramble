@@ -14,7 +14,7 @@ emcc -O2 \
   -sASYNCIFY \
   -sALLOW_MEMORY_GROWTH=1 \
   -sFORCE_FILESYSTEM=1 \
-  -sEXPORTED_RUNTIME_METHODS=HEAPU8,HEAPU32,HEAP32,FS,ccall,UTF8ToString,stringToNewUTF8 \
+  -sEXPORTED_RUNTIME_METHODS=HEAPU8,HEAPU32,HEAP32,HEAPF64,FS,ccall,UTF8ToString,stringToNewUTF8 \
   -sEXPORTED_FUNCTIONS=_malloc,_free
 
 echo "Built ../public/engine.js + engine.wasm"
