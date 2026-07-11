@@ -18,7 +18,7 @@ them — and the **Decimate** slider drops the photo's resolution — all the wa
 true 15-puzzle — so you can watch the solver work tile by tile, then slide back up to
 restore the full photo. Built-in **test images** load with one click: smooth hue/lightness
 gradient boards from 4×4 up to 1024×1024 (`?img=64` links straight to one), plus the
-original 2008 test photo.
+original 2008 test photo and a kbToyTracer render.
 
 ## History
 

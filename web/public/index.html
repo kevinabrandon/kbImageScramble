@@ -31,7 +31,23 @@
   button.primary { font-weight: 600; }
   input[type="number"] { width: 8.5rem; }
   #n { width: 10rem; }
+  #mainrow { display: flex; gap: .75rem; align-items: stretch; }
+  #panel {
+    display: flex; flex-direction: column; gap: .5rem;
+    min-width: 170px; align-self: flex-start;
+    border: 1px solid #8884; border-radius: 6px; padding: .8rem;
+  }
+  #panel button { width: 100%; }
+  #panel .speedbox { display: flex; flex-direction: column; align-items: stretch; gap: .2rem; }
+  #panel #speed { width: 100%; }
+  #panel #speedval { font-size: .78rem; color: #888; min-height: 2.1em; }
+  @media (max-width: 700px) {
+    #mainrow { flex-wrap: wrap; }
+    #panel { flex-direction: row; flex-wrap: wrap; width: 100%; }
+    #panel button { width: auto; flex: 1; }
+  }
   #canvasbox {
+    flex: 1; min-width: 0;
     border: 1px solid #8884; border-radius: 6px; min-height: 200px;
     display: flex; align-items: center; justify-content: center;
     padding: .5rem; overflow: auto;
@@ -66,19 +82,10 @@ through the image, escorting every pixel back home row by row until the picture 
 itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
 
 <fieldset>
-  <legend>Scramble</legend>
-  <button id="scramble" class="primary">Scramble!</button>
+  <legend>Options</legend>
   <label><input id="swirl" type="checkbox"> Swirl</label>
   <label><input id="direction" type="checkbox"> Toggle Direction</label>
-  <span style="font-size:.8rem; color:#888">scrambles until you stop it — adjust Speed as it runs</span>
-</fieldset>
-
-<fieldset>
-  <legend>Solve</legend>
-  <button id="solve" class="primary">Solve!!</button>
-  <button id="flip">Flip!!</button>
-  <button id="stupid" title="sic — the 2008 button, spelling and all. A deliberately greedy solve that chases its own tail: a live demonstration of why Solve!! has to be smarter than this">Stuipd Solve</button>
-  <button id="stop" disabled>Stop</button>
+  <label><input id="numbers" type="checkbox" checked> Tile #s</label>
   <span class="dpad">
     <button id="mleft" class="hole" title="move the hole left (arrow keys work too)">←</button>
     <button id="mup" class="hole" title="move the hole up">↑</button>
@@ -87,15 +94,6 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   </span>
   <span style="font-size:.8rem; color:#888">move the hole yourself — when the image is
   outlined blue (click it), arrow keys work too</span>
-</fieldset>
-
-<fieldset>
-  <legend>Display</legend>
-  <label>Speed
-    <input id="speed" type="range" min="0" max="15" step="1" value="11">
-    <span id="speedval"></span>
-  </label>
-  <label><input id="numbers" type="checkbox" checked> Tile #s</label>
 </fieldset>
 
 <fieldset>
@@ -112,8 +110,7 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   <legend>File</legend>
   <button id="open">Open</button>
   <input id="file" type="file" accept="image/*,.ppm" hidden>
-  <button id="saveppm">Save PPM</button>
-  <button id="savepng">Save PNG</button>
+  <button id="save">Save</button>
 </fieldset>
 
 <fieldset>
@@ -127,14 +124,28 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   <button class="testimg" data-src="gradients/grad-256.png">256×256</button>
   <button class="testimg" data-src="gradients/grad-512.png">512×512</button>
   <button class="testimg" data-src="gradients/grad-1024.png">1024×1024</button>
-  <button class="testimg" data-src="kevin.ppm">kevin.ppm</button>
+  <button class="testimg" data-src="kevin.ppm">Kevin</button>
+  <button class="testimg" data-src="toytracer.png">kbToyTracer</button>
 </fieldset>
 
-<div id="canvasbox" tabindex="0" title="click to focus; arrow keys move the hole">
-  <div id="placeholder">Drop an image here, or click Open</div>
-  <div id="canvaswrap" hidden>
-    <canvas id="canvas"></canvas>
-    <canvas id="overlay"></canvas>
+<div id="mainrow">
+  <aside id="panel">
+    <label class="speedbox">Speed
+      <input id="speed" type="range" min="0" max="15" step="1" value="11">
+      <span id="speedval"></span>
+    </label>
+    <button id="scramble" class="primary">Scramble!</button>
+    <button id="solve" class="primary">Solve!!</button>
+    <button id="flip">Flip!!</button>
+    <button id="stupid" title="sic — the 2008 button, spelling and all. A deliberately greedy solve that chases its own tail: a live demonstration of why Solve!! has to be smarter than this">Stuipd Solve</button>
+    <button id="stop" disabled>Stop</button>
+  </aside>
+  <div id="canvasbox" tabindex="0" title="click to focus; arrow keys move the hole">
+    <div id="placeholder">Drop an image here, or click Open</div>
+    <div id="canvaswrap" hidden>
+      <canvas id="canvas"></canvas>
+      <canvas id="overlay"></canvas>
+    </div>
   </div>
 </div>
 <div id="progresswrap"><div id="progress"></div></div>

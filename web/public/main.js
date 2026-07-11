@@ -131,7 +131,7 @@ window.addEventListener('resize', drawNumbers);
 function setRunning(on) {
   running = on;
   const scrambling = on && currentOp === 'eng_scramble';
-  for (const id of ['solve', 'flip', 'stupid', 'open', 'saveppm', 'savepng',
+  for (const id of ['solve', 'flip', 'stupid', 'open', 'save',
     'mup', 'mdown', 'mleft', 'mright'])
     $(id).disabled = on;
   // The scramble button stays live during its own run: it's the off switch.
@@ -331,15 +331,7 @@ box.ondrop = (e) => {
   if (e.dataTransfer.files[0]) openFile(e.dataTransfer.files[0]);
 };
 
-$('saveppm').onclick = () => {
-  if (!Module._eng_have_image()) return;
-  const path = Module.stringToNewUTF8('/out.ppm');
-  Module._eng_save_ppm(path);
-  Module._free(path);
-  const bytes = Module.FS.readFile('/out.ppm');
-  download(new Blob([bytes]), 'scrambled.ppm');
-};
-$('savepng').onclick = () => {
+$('save').onclick = () => {
   if (!Module._eng_have_image()) return;
   canvas.toBlob((blob) => download(blob, 'scrambled.png'), 'image/png');
 };
