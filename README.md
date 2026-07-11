@@ -4,7 +4,13 @@ A 15-puzzle where every tile is a pixel of a photograph — scramble it with hun
 millions of random moves, then watch it solve itself back one pixel at a time.
 
 **▶ Try it: https://kevinabrandon.github.io/kbImageScramble/**
-(or [jump straight into a demo](https://kevinabrandon.github.io/kbImageScramble/?demo))
+
+<p align="center">
+  <img src="docs/gradient-256.png" width="256" alt="the gradient test board">
+  <img src="docs/gradient-256-ccw-100m.png" width="256" alt="the same board after 100 million counter-clockwise swirl moves">
+</p>
+<p align="center"><em>The gradient board before and after 100,000,000 counter-clockwise
+swirl moves. Every pixel is still in there — <strong>Solve!!</strong> walks each one home.</em></p>
 
 Drop in any image and scramble it into noise for as long as you like — it runs until you
 stop it, and you can change the speed while it goes — then
