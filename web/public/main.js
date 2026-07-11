@@ -16,7 +16,7 @@ const log = (msg) => {
 
 const Module = await createEngine({
   onLog: log,
-  onDraw: () => { paint(); updateProgress(); },
+  onDraw: () => { paint(); updateProgress(); drawNumbers(); },
 });
 
 // Addresses cached once; read/written via heap views because exports must not
@@ -100,7 +100,9 @@ function drawNumbers() {
   overlay.width = Math.round(rect.width * dpr);
   overlay.height = Math.round(rect.height * dpr);
   octx.clearRect(0, 0, overlay.width, overlay.height);
-  if (running || !w || w * h > 4096) return;
+  if (!w || w * h > 4096) return;
+  // Mid-run, show numbers only at watchable speeds (every move or slower).
+  if (running && speedParams().every !== 1) return;
   if (!Module._eng_have_image()) return;
   // object-fit: contain letterboxes the image inside the element — map the
   // tile grid onto the actual content rectangle, not the element box.
@@ -170,8 +172,11 @@ for (const b of document.querySelectorAll('#mode button'))
       o.classList.toggle('active', o === b);
     // Heap writes so the mode can change mid-scramble (the 2008 loop reads
     // these flags every iteration; exports can't be called while suspended).
+    // The hole walks the rotation; the visible smear flows the opposite
+    // way. The buttons label what you see, so cw here sets the 2008
+    // "direction" flag (the hole's ccw).
     Module.HEAPU8[ptr.swirl] = scrambleMode === 'random' ? 0 : 1;
-    Module.HEAPU8[ptr.direction] = scrambleMode === 'ccw' ? 1 : 0;
+    Module.HEAPU8[ptr.direction] = scrambleMode === 'cw' ? 1 : 0;
   };
 
 // Scramble runs "forever" (1e15 moves ≈ years) until stopped — the button
@@ -181,7 +186,7 @@ $('scramble').onclick = () => {
     if (currentOp === 'eng_scramble') Module.HEAPU8[ptr.stop] = 1;
     return;
   }
-  run('eng_scramble', 1e15, scrambleMode === 'random' ? 0 : 1, scrambleMode === 'ccw' ? 1 : 0);
+  run('eng_scramble', 1e15, scrambleMode === 'random' ? 0 : 1, scrambleMode === 'cw' ? 1 : 0);
 };
 $('solve').onclick = () => run('eng_solve');
 $('flip').onclick = () => run('eng_flip_solve');
