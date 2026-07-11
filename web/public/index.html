@@ -25,8 +25,8 @@
   fieldset legend { font-size: .75rem; color: #888; padding: 0 .3rem; }
   label { display: inline-flex; align-items: center; gap: .3rem; font-size: .9rem; white-space: nowrap; }
   button { font-size: .95rem; padding: .35rem .9rem; cursor: pointer; }
-  .dpad { margin-left: 1rem; }
-  .dpad button { padding: .35rem .55rem; }
+  .hint { font-size: .75rem; color: #888; }
+  select { font-size: .9rem; padding: .3rem; }
   button:disabled { cursor: default; }
   button.primary { font-weight: 600; }
   input[type="number"] { width: 8.5rem; }
@@ -87,48 +87,28 @@ through the image, escorting every pixel back home row by row until the picture 
 itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
 
 <fieldset>
-  <legend>Options</legend>
-  <label><input id="numbers" type="checkbox" checked> Tile #s</label>
-  <span class="dpad">
-    <button id="mleft" class="hole" title="move the hole left (arrow keys work too)">←</button>
-    <button id="mup" class="hole" title="move the hole up">↑</button>
-    <button id="mdown" class="hole" title="move the hole down">↓</button>
-    <button id="mright" class="hole" title="move the hole right">→</button>
-  </span>
-  <span style="font-size:.8rem; color:#888">move the hole yourself — when the image is
-  outlined blue (click it), arrow keys work too</span>
-</fieldset>
-
-<fieldset>
-  <legend>Resolution</legend>
-  <label>Decimate
-    <input id="res" type="range" min="0" max="100" value="100" disabled>
-    <span id="resval">—</span>
-  </label>
-  <span style="font-size:.8rem; color:#888">slide left to shrink the board (short side stops at 4
-  pixels — a true 15-puzzle) and watch the solver tile by tile; slide right to restore the full photo</span>
-</fieldset>
-
-<fieldset>
   <legend>File</legend>
   <button id="open">Open</button>
   <input id="file" type="file" accept="image/*,.ppm" hidden>
   <button id="save">Save</button>
-</fieldset>
-
-<fieldset>
-  <legend>Test Images — hue ↘, dark→light ↗</legend>
-  <button class="testimg" data-src="gradients/grad-4.png">4×4</button>
-  <button class="testimg" data-src="gradients/grad-8.png">8×8</button>
-  <button class="testimg" data-src="gradients/grad-16.png">16×16</button>
-  <button class="testimg" data-src="gradients/grad-32.png">32×32</button>
-  <button class="testimg" data-src="gradients/grad-64.png">64×64</button>
-  <button class="testimg" data-src="gradients/grad-128.png">128×128</button>
-  <button class="testimg" data-src="gradients/grad-256.png">256×256</button>
-  <button class="testimg" data-src="gradients/grad-512.png">512×512</button>
-  <button class="testimg" data-src="gradients/grad-1024.png">1024×1024</button>
-  <button class="testimg" data-src="kevin.ppm">Kevin</button>
-  <button class="testimg" data-src="toytracer.png">kbToyTracer</button>
+  <select id="preset">
+    <option value="" selected disabled>Load Preset…</option>
+    <option value="toytracer.png">kbToyTracer</option>
+    <option value="kevin.ppm">Kevin</option>
+    <option value="gradients/grad-4.png">4×4 Gradient</option>
+    <option value="gradients/grad-8.png">8×8 Gradient</option>
+    <option value="gradients/grad-16.png">16×16 Gradient</option>
+    <option value="gradients/grad-32.png">32×32 Gradient</option>
+    <option value="gradients/grad-64.png">64×64 Gradient</option>
+    <option value="gradients/grad-128.png">128×128 Gradient</option>
+    <option value="gradients/grad-256.png">256×256 Gradient</option>
+    <option value="gradients/grad-512.png">512×512 Gradient</option>
+    <option value="gradients/grad-1024.png">1024×1024 Gradient</option>
+  </select>
+  <label title="slide left to shrink the board (short side stops at 4 pixels — a true 15-puzzle); slide right to restore the full photo">Decimate
+    <input id="res" type="range" min="0" max="100" value="100" disabled>
+    <span id="resval">—</span>
+  </label>
 </fieldset>
 
 <div id="mainrow">
@@ -147,6 +127,7 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
     <button id="flip">Flip!!</button>
     <button id="stupid" title="sic — the 2008 button, spelling and all. A deliberately greedy solve that chases its own tail: a live demonstration of why Solve!! has to be smarter than this">Stuipd Solve</button>
     <button id="stop" disabled>Stop</button>
+    <span class="hint">arrow keys move the hole — click the image to focus it</span>
   </aside>
   <div id="canvasbox" tabindex="0" title="click to focus; arrow keys move the hole">
     <div id="placeholder">Drop an image here, or click Open</div>

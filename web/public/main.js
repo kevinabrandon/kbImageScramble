@@ -98,7 +98,7 @@ function drawNumbers() {
   overlay.width = Math.round(rect.width * dpr);
   overlay.height = Math.round(rect.height * dpr);
   octx.clearRect(0, 0, overlay.width, overlay.height);
-  if (running || !w || !$('numbers').checked || w * h > 4096) return;
+  if (running || !w || w * h > 4096) return;
   if (!Module._eng_have_image()) return;
   // object-fit: contain letterboxes the image inside the element — map the
   // tile grid onto the actual content rectangle, not the element box.
@@ -125,20 +125,18 @@ function drawNumbers() {
     }
 }
 
-$('numbers').onchange = drawNumbers;
 window.addEventListener('resize', drawNumbers);
 
 function setRunning(on) {
   running = on;
   const scrambling = on && currentOp === 'eng_scramble';
-  for (const id of ['solve', 'flip', 'stupid', 'open', 'save',
-    'mup', 'mdown', 'mleft', 'mright'])
+  for (const id of ['solve', 'flip', 'stupid', 'open', 'save', 'preset'])
     $(id).disabled = on;
   // The scramble button stays live during its own run: it's the off switch.
   $('scramble').disabled = on && !scrambling;
   $('scramble').textContent = scrambling ? 'Stop Scrambling' : 'Scramble!';
   $('stop').disabled = !on;
-  for (const b of document.querySelectorAll('.testimg, #mode button')) b.disabled = on;
+  for (const b of document.querySelectorAll('#mode button')) b.disabled = on;
   $('res').disabled = on || !source;
   if (on) octx.clearRect(0, 0, overlay.width, overlay.height);
   else { paint(); updateProgress(); $('status').textContent = ''; drawNumbers(); }
@@ -190,13 +188,7 @@ function moveHole(dir) {
   Module._eng_move_hole(dir);
   paint();
   drawNumbers();
-  // Hand focus to the image so arrow keys keep working after a d-pad click
-  $('canvasbox').focus({ preventScroll: true });
 }
-$('mup').onclick = () => moveHole(0);
-$('mdown').onclick = () => moveHole(1);
-$('mleft').onclick = () => moveHole(2);
-$('mright').onclick = () => moveHole(3);
 
 // Arrow keys move the hole while the image box is focused (blue outline).
 $('canvasbox').addEventListener('keydown', (e) => {
@@ -330,8 +322,11 @@ async function openUrl(src) {
   await openFile(new File([blob], src.split('/').pop()));
 }
 
-for (const b of document.querySelectorAll('.testimg'))
-  b.onclick = () => { if (!running) openUrl(b.dataset.src); };
+$('preset').onchange = () => {
+  const src = $('preset').value;
+  $('preset').selectedIndex = 0; // reset so the same preset can be re-picked
+  if (src && !running) openUrl(src);
+};
 
 const box = $('canvasbox');
 box.ondragover = (e) => { e.preventDefault(); box.classList.add('drag'); };

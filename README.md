@@ -16,9 +16,10 @@ A single **Speed** slider controls how much you watch live — from redrawing ev
 10 million moves at full tilt down to every single move with up to 128 ms between
 them — and the **Decimate** slider drops the photo's resolution — all the way down to 4 pixels on the short side, a
 true 15-puzzle — so you can watch the solver work tile by tile, then slide back up to
-restore the full photo. Built-in **test images** load with one click: smooth hue/lightness
-gradient boards from 4×4 up to 1024×1024 (`?img=64` links straight to one), plus the
-original 2008 test photo and a kbToyTracer render.
+restore the full photo. A **Load Preset** menu offers a kbToyTracer render, the original
+2008 test photo, and smooth hue/lightness gradient boards from 4×4 up to 1024×1024
+(`?img=64` links straight to one). Arrow keys move the hole by hand when the image is
+focused, and large tiles show their 15-puzzle numbers.
 
 ## History
 
