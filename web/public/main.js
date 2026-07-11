@@ -30,6 +30,7 @@ const ptr = {
 };
 
 let running = false;
+let currentOp = null;
 
 // Full-resolution copy of the loaded image, kept so the Resolution slider can
 // decimate down (short side as low as 4px) and restore back up losslessly.
@@ -61,7 +62,9 @@ function updateProgress() {
   const cur = Module.HEAPU32[ptr.count >> 2];
   if (cur < lastCount) countBase += 2 ** 32;
   lastCount = cur;
-  $('progress').style.width = total ? `${(100 * solved / total).toFixed(1)}%` : '0%';
+  // Progress tracks the solvers; an endless scramble has no destination.
+  const pct = currentOp === 'eng_scramble' ? 0 : total ? 100 * solved / total : 0;
+  $('progress').style.width = `${pct.toFixed(1)}%`;
   $('status').textContent = running ? `moves: ${(countBase + cur).toLocaleString()}` : '';
 }
 
@@ -131,10 +134,16 @@ window.addEventListener('resize', drawNumbers);
 
 function setRunning(on) {
   running = on;
-  for (const id of ['scramble', 'solve', 'flip', 'stupid', 'open', 'saveppm', 'savepng',
+  const scrambling = on && currentOp === 'eng_scramble';
+  for (const id of ['solve', 'flip', 'stupid', 'open', 'saveppm', 'savepng',
     'mup', 'mdown', 'mleft', 'mright'])
     $(id).disabled = on;
+  // The scramble button stays live during its own run: it's the off switch.
+  $('scramble').disabled = on && !scrambling;
+  $('scramble').textContent = scrambling ? 'Stop Scrambling' : 'Scramble!';
   $('stop').disabled = !on;
+  for (const b of document.querySelectorAll('.testimg')) b.disabled = on;
+  $('res').disabled = on || !source;
   if (on) octx.clearRect(0, 0, overlay.width, overlay.height);
   else { paint(); updateProgress(); $('status').textContent = ''; drawNumbers(); }
 }
@@ -145,19 +154,24 @@ async function run(name, ...args) {
   Module._eng_set_draw(1, p.every, 0, p.delay);
   countBase = 0;
   lastCount = 0;
+  currentOp = name;
   setRunning(true);
   try {
     await Module.ccall(name, null, ['number', 'number', 'number'], args, { async: true });
   } finally {
+    currentOp = null;
     setRunning(false);
   }
 }
 
-// Logarithmic scramble count: slider 1..10 -> 10^1 .. 10^10 moves.
-const scrambleCount = () => Math.pow(10, +$('n').value);
-$('n').oninput = () => { $('nval').textContent = scrambleCount().toLocaleString(); };
+// Scramble runs "forever" (1e15 moves ≈ years) until stopped — the button
+// toggles, and the 2008 engine's own m_bStop checks are the off switch.
 $('scramble').onclick = () => {
-  run('eng_scramble', scrambleCount(), $('swirl').checked ? 1 : 0, $('direction').checked ? 1 : 0);
+  if (running) {
+    if (currentOp === 'eng_scramble') Module.HEAPU8[ptr.stop] = 1;
+    return;
+  }
+  run('eng_scramble', 1e15, $('swirl').checked ? 1 : 0, $('direction').checked ? 1 : 0);
 };
 $('solve').onclick = () => run('eng_solve');
 $('flip').onclick = () => run('eng_flip_solve');

@@ -6,7 +6,8 @@ millions of random moves, then watch it solve itself back one pixel at a time.
 **▶ Try it: https://kevinabrandon.github.io/kbImageScramble/**
 (or [jump straight into a demo](https://kevinabrandon.github.io/kbImageScramble/?demo))
 
-Drop in any image and scramble it into noise with up to ten billion random tile moves, then
+Drop in any image and scramble it into noise for as long as you like — it runs until you
+stop it, and you can change the speed while it goes — then
 hit **Solve!!** and watch the hole run through the image, escorting every pixel back home
 row by row until the picture reassembles itself. **Flip!!** solves to the upside-down
 image instead; **Swirl** scrambles with a drifting bias so the photo smears rather than
