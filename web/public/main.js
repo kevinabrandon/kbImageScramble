@@ -452,6 +452,7 @@ log(' ');
 const params = new URLSearchParams(location.search);
 if (params.has('img')) await openUrl('gradients/grad-1024.png');
 else if (params.has('demo')) await openUrl('kevin.ppm');
+else await openUrl('toytracer.png'); // default board
 if (source && params.has('res')) {
   const short = Math.max(4, Math.min(Math.min(source.w, source.h), +params.get('res') || 4));
   const S = Math.min(source.w, source.h);
