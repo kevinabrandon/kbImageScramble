@@ -164,7 +164,7 @@ async function run(name, ...args) {
 // Scramble mode segmented control. The 2008 flags map exactly: Swirl is the
 // rotating direction bias, and "Toggle Direction" reversed the rotation —
 // tracing the suggestion cycle gives clockwise vs counter-clockwise.
-let scrambleMode = 'random';
+let scrambleMode = 'cw';
 for (const b of document.querySelectorAll('#mode button'))
   b.onclick = () => {
     scrambleMode = b.dataset.mode;
