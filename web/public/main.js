@@ -67,7 +67,7 @@ function updateProgress() {
 }
 
 // Single speed ladder, fastest (right) to slowest (left):
-// slider 15..8 -> redraw every 10^7 .. 10^0 moves with no delay;
+// slider 14..8 -> redraw every 10^6 .. 10^0 moves with no delay;
 // slider  7..0 -> redraw every move with a 1, 2, 4, ... 128 ms delay.
 function speedParams() {
   const s = +$('speed').value;
@@ -213,11 +213,21 @@ $('canvasbox').addEventListener('keydown', (e) => {
 $('speed').oninput = applySpeed;
 applySpeed();
 
+// Auto-speed on open/preset/resize: one speed step per half-octave of board
+// size — 4px short side lands on the slowest stop (128 ms/move), 512px and
+// up on the fastest (redraw every 1M moves).
+function autoSpeed(w, h) {
+  const s = Math.round(2 * (Math.log2(Math.min(w, h)) - 2));
+  $('speed').value = Math.max(0, Math.min(14, s));
+  applySpeed();
+}
+
 function showCanvas(w, h) {
   canvas.width = w;
   canvas.height = h;
   $('canvaswrap').hidden = false;
   $('placeholder').hidden = true;
+  autoSpeed(w, h);
   paint();
   $('canvasbox').focus({ preventScroll: true });
   drawNumbers();

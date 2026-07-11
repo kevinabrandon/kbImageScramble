@@ -105,7 +105,7 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
     <option value="gradients/grad-512.png">512×512 Gradient</option>
     <option value="gradients/grad-1024.png">1024×1024 Gradient</option>
   </select>
-  <label title="slide left to shrink the board (short side stops at 4 pixels — a true 15-puzzle); slide right to restore the full photo">Decimate
+  <label title="slide left to shrink the board (short side stops at 4 pixels — a true 15-puzzle); slide right to restore the full photo">Resize
     <input id="res" type="range" min="0" max="100" value="100" disabled>
     <span id="resval">—</span>
   </label>
@@ -114,7 +114,7 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
 <div id="mainrow">
   <aside id="panel">
     <label class="speedbox">Speed
-      <input id="speed" type="range" min="0" max="15" step="1" value="11">
+      <input id="speed" type="range" min="0" max="14" step="1" value="11">
       <span id="speedval"></span>
     </label>
     <button id="scramble" class="primary">Scramble!</button>
