@@ -11,8 +11,9 @@ hit **Solve!!** and watch the hole run through the image, escorting every pixel 
 row by row until the picture reassembles itself. **Flip!!** solves to the upside-down
 image instead; **Swirl** scrambles with a drifting bias so the photo smears rather than
 dissolves; **Stuipd Solve** *[sic]* solves greedily and visibly fails forever, on purpose.
-**ReDraw**/**Slow** control how much of the action you watch live, and the **Decimate**
-slider drops the photo's resolution — all the way down to 4 pixels on the short side, a
+A single **Speed** slider controls how much you watch live — from redrawing every
+10 million moves at full tilt down to every single move with up to 128 ms between
+them — and the **Decimate** slider drops the photo's resolution — all the way down to 4 pixels on the short side, a
 true 15-puzzle — so you can watch the solver work tile by tile, then slide back up to
 restore the full photo. Built-in **test images** load with one click: smooth hue/lightness
 gradient boards from 4×4 up to 1024×1024 (`?img=64` links straight to one), plus the

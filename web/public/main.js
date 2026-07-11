@@ -59,10 +59,23 @@ function updateProgress() {
   $('status').textContent = running ? `moves: ${count.toLocaleString()}` : '';
 }
 
-function applyDisplaySettings() {
+// Single speed ladder, fastest (right) to slowest (left):
+// slider 15..8 -> redraw every 10^7 .. 10^0 moves with no delay;
+// slider  7..0 -> redraw every move with a 1, 2, 4, ... 128 ms delay.
+function speedParams() {
+  const s = +$('speed').value;
+  if (s >= 8) return { every: Math.pow(10, s - 8), delay: 0 };
+  return { every: 1, delay: 1 << (7 - s) };
+}
+
+function applySpeed() {
+  const p = speedParams();
+  $('speedval').textContent = p.delay ? `draw every move + ${p.delay}ms`
+    : p.every === 1 ? 'draw every move'
+    : `draw every ${p.every.toLocaleString()} moves`;
   // Live-adjustable mid-run (heap writes, not calls)
-  Module.HEAP32[ptr.drawEvery >> 2] = Math.max(1, +$('drawevery').value || 1);
-  Module.HEAP32[ptr.slowMs >> 2] = +$('delay').value;
+  Module.HEAP32[ptr.drawEvery >> 2] = p.every;
+  Module.HEAP32[ptr.slowMs >> 2] = p.delay;
 }
 
 // --- Tile numbers (idle-only overlay) ---
@@ -93,6 +106,7 @@ function drawNumbers() {
   octx.font = `${Math.round(tile * 0.38)}px system-ui, sans-serif`;
   octx.textAlign = 'center';
   octx.textBaseline = 'middle';
+  octx.lineJoin = 'round'; // miter joins spike on tight glyph corners (the "2" starburst)
   octx.lineWidth = Math.max(1.5, tile * 0.05);
   octx.strokeStyle = 'rgba(0,0,0,.8)';
   octx.fillStyle = '#fff';
@@ -121,11 +135,8 @@ function setRunning(on) {
 
 async function run(name, ...args) {
   if (!Module._eng_have_image()) { log('Open an image first.'); return; }
-  // ReDraw off means no yields: the browser freezes until done, like the 2008
-  // program's worker thread pegging a core. Warn once in the log.
-  if (!$('redraw').checked) log(`${name} running with ReDraw off; page may be unresponsive until done...`);
-  Module._eng_set_draw($('redraw').checked ? 1 : 0, Math.max(1, +$('drawevery').value || 1),
-    $('slow').checked ? 1 : 0, +$('delay').value);
+  const p = speedParams();
+  Module._eng_set_draw(1, p.every, 0, p.delay);
   setRunning(true);
   try {
     await Module.ccall(name, null, ['number', 'number', 'number'], args, { async: true });
@@ -166,8 +177,8 @@ $('canvasbox').addEventListener('keydown', (e) => {
   moveHole(dirs[e.key]);
 });
 
-$('drawevery').onchange = applyDisplaySettings;
-$('delay').oninput = () => { $('delayval').textContent = `${$('delay').value}ms`; applyDisplaySettings(); };
+$('speed').oninput = applySpeed;
+applySpeed();
 
 function showCanvas(w, h) {
   canvas.width = w;
