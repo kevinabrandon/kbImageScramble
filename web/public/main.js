@@ -193,13 +193,61 @@ $('flip').onclick = () => run('eng_flip_solve');
 $('stupid').onclick = () => run('eng_stupid_solve');
 $('stop').onclick = () => { Module.HEAPU8[ptr.stop] = 1; };
 
+// Confetti burst for solving the puzzle by hand. Self-contained: a fixed
+// full-viewport canvas that removes itself when the last particle settles.
+function confetti() {
+  const c = document.createElement('canvas');
+  c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99';
+  c.width = innerWidth;
+  c.height = innerHeight;
+  document.body.appendChild(c);
+  const cx = c.getContext('2d');
+  const colors = ['#e628ff', '#59f', '#ffd24d', '#5be05b', '#ff5b5b', '#fff'];
+  const parts = Array.from({ length: 160 }, () => ({
+    x: c.width / 2 + (Math.random() - 0.5) * c.width * 0.4,
+    y: c.height * 0.35,
+    vx: (Math.random() - 0.5) * 14,
+    vy: -Math.random() * 14 - 4,
+    r: Math.random() * 5 + 3,
+    a: Math.random() * Math.PI,
+    va: (Math.random() - 0.5) * 0.4,
+    color: colors[(Math.random() * colors.length) | 0],
+  }));
+  const t0 = performance.now();
+  (function tick(t) {
+    const dt = Math.min((t - t0) / 1000, 3);
+    cx.clearRect(0, 0, c.width, c.height);
+    for (const p of parts) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.45;
+      p.a += p.va;
+      cx.save();
+      cx.translate(p.x, p.y);
+      cx.rotate(p.a);
+      cx.globalAlpha = Math.max(0, 1 - dt / 2.8);
+      cx.fillStyle = p.color;
+      cx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+      cx.restore();
+    }
+    if (dt < 2.8) requestAnimationFrame(tick);
+    else c.remove();
+  })(t0);
+}
+
 // Manual hole moves. Engine direction codes: 0 => y-1 (screen up),
 // 1 => y+1 (down), 2 => x-1 (left), 3 => x+1 (right).
 function moveHole(dir) {
   if (running || !Module._eng_have_image()) return;
+  const wasSolved = Module._eng_is_solved();
   Module._eng_move_hole(dir);
   paint();
   drawNumbers();
+  if (!wasSolved && Module._eng_is_solved()) {
+    confetti();
+    log('Solved by hand!');
+    log(' ');
+  }
 }
 
 // Arrow keys move the hole while the image box is focused (blue outline).

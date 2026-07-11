@@ -111,4 +111,11 @@ check('manual move changes the image', diffCount(before, snapshot()) > 0);
 Module._eng_move_hole(3); // right (x+1)
 check('manual move round-trip restores the image', diffCount(before, snapshot()) === 0);
 
+// 6. Solved detection: solved now; one move unsolves; the undo re-solves
+check('is_solved true on solved board', Module._eng_is_solved() === 1);
+Module._eng_move_hole(2);
+check('is_solved false after a move', Module._eng_is_solved() === 0);
+Module._eng_move_hole(3);
+check('is_solved true after undo', Module._eng_is_solved() === 1);
+
 process.exit(failures ? 1 : 0);

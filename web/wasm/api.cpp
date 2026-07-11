@@ -67,6 +67,7 @@ EMSCRIPTEN_KEEPALIVE void eng_flip_solve( )		{ g_Engine.FlipSolve( ); }
 EMSCRIPTEN_KEEPALIVE void eng_stupid_solve( )	{ g_Engine.StupidSolve( ); }
 EMSCRIPTEN_KEEPALIVE void eng_stop( )			{ g_Engine.Stop( ); }
 
+EMSCRIPTEN_KEEPALIVE int eng_is_solved( )		{ return g_Engine.IsSolved( ) ? 1 : 0; }
 EMSCRIPTEN_KEEPALIVE int eng_have_image( )		{ return g_Engine.HaveImage( ) ? 1 : 0; }
 EMSCRIPTEN_KEEPALIVE int eng_width( )			{ return g_Engine.Width( ); }
 EMSCRIPTEN_KEEPALIVE int eng_height( )			{ return g_Engine.Height( ); }

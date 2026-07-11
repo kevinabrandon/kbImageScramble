@@ -90,6 +90,19 @@ class kbEngine
 	// 2026: home position of the pixel currently at (x,y) -- its tile number.
 	kbPoint Home( int x, int y )	{ return m_ScramblerMap.GetPoint( x, y ); }
 
+	// 2026: true when every pixel is home (early-outs on first mismatch).
+	bool IsSolved( )
+	{
+		if( !m_bHaveImage ) return false;
+		for( int j = 0; j < m_Image.Height( ); j++ )
+			for( int i = 0; i < m_Image.Width( ); i++ )
+			{
+				kbPoint p = m_ScramblerMap.GetPoint( i, j );
+				if( p.x != i || p.y != j ) return false;
+			}
+		return true;
+	}
+
 	double AvgDistance( )	{ return m_ScramblerMap.GetAvgDistance( ); }
 	int MaxDistance( )		{ return m_ScramblerMap.GetMaxDistance( ); }
 	int MinDistance( )		{ return m_ScramblerMap.GetMinDistance( ); }
