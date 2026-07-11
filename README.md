@@ -10,8 +10,8 @@ Drop in any image and scramble it into noise for as long as you like — it runs
 stop it, and you can change the speed while it goes — then
 hit **Solve!!** and watch the hole run through the image, escorting every pixel back home
 row by row until the picture reassembles itself. **Flip!!** solves to the upside-down
-image instead; **Swirl** scrambles with a drifting bias so the photo smears rather than
-dissolves; **Stuipd Solve** *[sic]* solves greedily and visibly fails forever, on purpose.
+image instead; the **Swirl** modes (↻/↺) bias the scramble into a clockwise or
+counter-clockwise rotation so the photo smears rather than dissolves; **Stuipd Solve** *[sic]* solves greedily and visibly fails forever, on purpose.
 A single **Speed** slider controls how much you watch live — from redrawing every
 10 million moves at full tilt down to every single move with up to 128 ms between
 them — and the **Decimate** slider drops the photo's resolution — all the way down to 4 pixels on the short side, a

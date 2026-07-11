@@ -138,7 +138,7 @@ function setRunning(on) {
   $('scramble').disabled = on && !scrambling;
   $('scramble').textContent = scrambling ? 'Stop Scrambling' : 'Scramble!';
   $('stop').disabled = !on;
-  for (const b of document.querySelectorAll('.testimg')) b.disabled = on;
+  for (const b of document.querySelectorAll('.testimg, #mode button')) b.disabled = on;
   $('res').disabled = on || !source;
   if (on) octx.clearRect(0, 0, overlay.width, overlay.height);
   else { paint(); updateProgress(); $('status').textContent = ''; drawNumbers(); }
@@ -158,6 +158,17 @@ async function run(name, ...args) {
   }
 }
 
+// Scramble mode segmented control. The 2008 flags map exactly: Swirl is the
+// rotating direction bias, and "Toggle Direction" reversed the rotation —
+// tracing the suggestion cycle gives clockwise vs counter-clockwise.
+let scrambleMode = 'random';
+for (const b of document.querySelectorAll('#mode button'))
+  b.onclick = () => {
+    scrambleMode = b.dataset.mode;
+    for (const o of document.querySelectorAll('#mode button'))
+      o.classList.toggle('active', o === b);
+  };
+
 // Scramble runs "forever" (1e15 moves ≈ years) until stopped — the button
 // toggles, and the 2008 engine's own m_bStop checks are the off switch.
 $('scramble').onclick = () => {
@@ -165,7 +176,7 @@ $('scramble').onclick = () => {
     if (currentOp === 'eng_scramble') Module.HEAPU8[ptr.stop] = 1;
     return;
   }
-  run('eng_scramble', 1e15, $('swirl').checked ? 1 : 0, $('direction').checked ? 1 : 0);
+  run('eng_scramble', 1e15, scrambleMode === 'random' ? 0 : 1, scrambleMode === 'ccw' ? 1 : 0);
 };
 $('solve').onclick = () => run('eng_solve');
 $('flip').onclick = () => run('eng_flip_solve');

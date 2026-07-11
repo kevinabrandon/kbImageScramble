@@ -38,6 +38,11 @@
     border: 1px solid #8884; border-radius: 6px; padding: .8rem;
   }
   #panel button { width: 100%; }
+  .seg { display: flex; }
+  .seg button { width: auto; flex: 1; padding: .25rem .4rem; font-size: .85rem; border-radius: 0; }
+  .seg button:first-child { border-radius: 4px 0 0 4px; }
+  .seg button:last-child { border-radius: 0 4px 4px 0; }
+  .seg button.active { background: #59f; color: #fff; }
   #panel .speedbox { display: flex; flex-direction: column; align-items: stretch; gap: .2rem; }
   #panel #speed { width: 100%; }
   #panel #speedval { font-size: .78rem; color: #888; min-height: 2.1em; }
@@ -83,8 +88,6 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
 
 <fieldset>
   <legend>Options</legend>
-  <label><input id="swirl" type="checkbox"> Swirl</label>
-  <label><input id="direction" type="checkbox"> Toggle Direction</label>
   <label><input id="numbers" type="checkbox" checked> Tile #s</label>
   <span class="dpad">
     <button id="mleft" class="hole" title="move the hole left (arrow keys work too)">←</button>
@@ -135,6 +138,11 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
       <span id="speedval"></span>
     </label>
     <button id="scramble" class="primary">Scramble!</button>
+    <span class="seg" id="mode">
+      <button data-mode="random" class="active" title="random walk — the hole wanders freely">Random</button>
+      <button data-mode="cw" title="swirl — bias the walk in a clockwise rotation, so the image smears instead of dissolving">↻</button>
+      <button data-mode="ccw" title="swirl counter-clockwise">↺</button>
+    </span>
     <button id="solve" class="primary">Solve!!</button>
     <button id="flip">Flip!!</button>
     <button id="stupid" title="sic — the 2008 button, spelling and all. A deliberately greedy solve that chases its own tail: a live demonstration of why Solve!! has to be smarter than this">Stuipd Solve</button>
@@ -162,8 +170,8 @@ itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
   back — the solver routes the hole around the board to walk each pixel home, filling in
   the image row by row like it's being redrawn, and it works no matter how scrambled the
   board is (a billion moves? doesn't matter). Flip!! solves the puzzle into the
-  upside-down image instead; Swirl scrambles with a drifting bias so the photo smears
-  instead of dissolving; and Stuipd Solve <em>[sic]</em> tries to solve greedily and
+  upside-down image instead; the Swirl modes (↻/↺) bias the scramble's walk into a rotation
+  so the photo smears instead of dissolving; and Stuipd Solve <em>[sic]</em> tries to solve greedily and
   visibly fails forever — a demonstration of why the real solver has to be clever.</p>
   <p>It began as a brother-to-brother coding challenge in January 2008. The engine running
   here is that original C++ code, compiled unmodified to WebAssembly; the 2008 sources are
