@@ -49,7 +49,9 @@ class kbEngine
 	public:
 	kbEngine( );
 
-	mUInt				m_iCount;
+	mUInt				m_iCount;		// 2008 counter: feeds the swirl/draw modulos; wraps at 2^32
+	double				m_dCount;		// 2026: exact move count for reporting (uint32 wraps ~4.3e9,
+										// which a FlipSolve of a 1024x1024 actually exceeds)
 	mInt				m_iPixelsSolved;
 
 	mBool				m_bDraw;			// "ReDraw" checkbox

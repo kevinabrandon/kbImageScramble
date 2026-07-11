@@ -195,6 +195,7 @@ kbEngine::kbEngine( )
 	m_bSlow = false;
 	m_iDrawEvery = 1;
 	m_iCount = 0;
+	m_dCount = 0;
 	m_iPixelsSolved = 0;
 }
 
@@ -267,6 +268,7 @@ void kbEngine::Scramble( double nTimes, bool bSwirl, bool bDirection )
 	m_bStop = false;
 
 	m_iCount = 0;
+	m_dCount = 0;
 
 	int iSuggestion = 0;
 	double dStart = EngineNow( );
@@ -499,6 +501,7 @@ void kbEngine::Solve( )
 
 	m_bStop = false;
 	m_iCount = 0;
+	m_dCount = 0;
 	m_iPixelsSolved = 0;
 
 	double dStart = EngineNow( );
@@ -595,7 +598,7 @@ void kbEngine::Solve( )
 
 	char Message[ 1024 ];
 
-	snprintf( Message, 1024, "Solved %i pixels in %i:%i:%.3f with %i moves", m_iPixelsSolved, iHours, iMin, dSeconds, m_iCount );
+	snprintf( Message, 1024, "Solved %i pixels in %i:%i:%.3f with %.0f moves", m_iPixelsSolved, iHours, iMin, dSeconds, m_dCount );
 	EngineLog( Message );
 	EngineLog( " " );
 
@@ -611,6 +614,7 @@ void kbEngine::FlipSolve( )
 
 	m_bStop = false;
 	m_iCount = 0;
+	m_dCount = 0;
 	m_iPixelsSolved = 0;
 
 	double dStart = EngineNow( );
@@ -708,7 +712,7 @@ void kbEngine::FlipSolve( )
 
 	char Message[ 1024 ];
 
-	snprintf( Message, 1024, "Flip Solved %i pixels in %i:%i:%.3f with %i moves", m_iPixelsSolved, iHours, iMin, dSeconds, m_iCount );
+	snprintf( Message, 1024, "Flip Solved %i pixels in %i:%i:%.3f with %.0f moves", m_iPixelsSolved, iHours, iMin, dSeconds, m_dCount );
 	EngineLog( Message );
 	EngineLog( " " );
 }
@@ -754,6 +758,7 @@ void kbEngine::MoveHoleLowLevel( int iDirection )
 	m_Image.SetPixel( m_HoleLocation.x, m_HoleLocation.y, newPixel );
 	m_Image.SetPixel( newHoleLocation.x, newHoleLocation.y, gHolePixel );
 	m_HoleLocation = newHoleLocation;
+	m_dCount++;
 
 	if( m_bDraw && ( m_iCount % (mUInt) m_iDrawEvery ) == 0 )
 	{
@@ -784,6 +789,7 @@ void kbEngine::StupidSolve( )
 
 	m_bStop = false;
 	m_iCount = 0;
+	m_dCount = 0;
 	m_iPixelsSolved = 0;
 
 	double dStart = EngineNow( );
@@ -812,7 +818,7 @@ void kbEngine::StupidSolve( )
 
 	char Message[ 1024 ];
 
-	snprintf( Message, 1024, "Stupid Solved %i pixels in %i:%i:%.3f with %i moves", m_iPixelsSolved, iHours, iMin, dSeconds, m_iCount );
+	snprintf( Message, 1024, "Stupid Solved %i pixels in %i:%i:%.3f with %.0f moves", m_iPixelsSolved, iHours, iMin, dSeconds, m_dCount );
 	EngineLog( Message );
 	EngineLog( " " );
 }

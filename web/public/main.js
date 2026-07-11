@@ -52,20 +52,16 @@ function paint() {
   ctx.putImageData(img, 0, 0);
 }
 
-// The engine's move counter is uint32 and wraps at ~4.29e9; detect wraps so
-// 10-billion-move scrambles display correctly.
-let countBase = 0, lastCount = 0;
-
 function updateProgress() {
   const total = canvas.width * canvas.height;
   const solved = Module.HEAP32[ptr.solved >> 2];
-  const cur = Module.HEAPU32[ptr.count >> 2];
-  if (cur < lastCount) countBase += 2 ** 32;
-  lastCount = cur;
+  // The engine's reporting counter is a double (exact to 2^53) — the uint32
+  // counter wraps at ~4.3e9, which big FlipSolves genuinely exceed.
+  const count = Module.HEAPF64[ptr.count >> 3];
   // Progress tracks the solvers; an endless scramble has no destination.
   const pct = currentOp === 'eng_scramble' ? 0 : total ? 100 * solved / total : 0;
   $('progress').style.width = `${pct.toFixed(1)}%`;
-  $('status').textContent = running ? `moves: ${(countBase + cur).toLocaleString()}` : '';
+  $('status').textContent = running ? `moves: ${count.toLocaleString()}` : '';
 }
 
 // Single speed ladder, fastest (right) to slowest (left):
@@ -152,8 +148,6 @@ async function run(name, ...args) {
   if (!Module._eng_have_image()) { log('Open an image first.'); return; }
   const p = speedParams();
   Module._eng_set_draw(1, p.every, 0, p.delay);
-  countBase = 0;
-  lastCount = 0;
   currentOp = name;
   setRunning(true);
   try {

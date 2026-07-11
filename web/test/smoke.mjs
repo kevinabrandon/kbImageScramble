@@ -48,6 +48,9 @@ check('scramble changes the image', diffCount(original, scrambled) > W * H * 0.5
 check('scramble avg distance > 0', Module._eng_avg_distance() > 1,
   `avg=${Module._eng_avg_distance().toFixed(2)}`);
 
+check('move counter is exact', Module._eng_count() === 50000,
+  `count=${Module._eng_count()}`);
+
 // 2. Solve — every pixel must walk home
 Module._eng_solve();
 check('Solve restores the image exactly', diffCount(original, snapshot()) === 0,
