@@ -23,6 +23,8 @@ const Module = await createEngine({
 // be called while the engine is suspended mid-operation (Asyncify).
 const ptr = {
   stop: Module._eng_stop_ptr(),
+  swirl: Module._eng_swirl_ptr(),
+  direction: Module._eng_direction_ptr(),
   count: Module._eng_count_ptr(),
   solved: Module._eng_pixels_solved_ptr(),
   drawEvery: Module._eng_draw_every_ptr(),
@@ -136,7 +138,8 @@ function setRunning(on) {
   $('scramble').disabled = on && !scrambling;
   $('scramble').textContent = scrambling ? 'Stop Scrambling' : 'Scramble!';
   $('stop').disabled = !on;
-  for (const b of document.querySelectorAll('#mode button')) b.disabled = on;
+  // Mode stays live during a scramble so the walk can be steered mid-run.
+  for (const b of document.querySelectorAll('#mode button')) b.disabled = on && !scrambling;
   $('res').disabled = on || !source;
   if (on) octx.clearRect(0, 0, overlay.width, overlay.height);
   else { paint(); updateProgress(); $('status').textContent = ''; drawNumbers(); }
@@ -165,6 +168,10 @@ for (const b of document.querySelectorAll('#mode button'))
     scrambleMode = b.dataset.mode;
     for (const o of document.querySelectorAll('#mode button'))
       o.classList.toggle('active', o === b);
+    // Heap writes so the mode can change mid-scramble (the 2008 loop reads
+    // these flags every iteration; exports can't be called while suspended).
+    Module.HEAPU8[ptr.swirl] = scrambleMode === 'random' ? 0 : 1;
+    Module.HEAPU8[ptr.direction] = scrambleMode === 'ccw' ? 1 : 0;
   };
 
 // Scramble runs "forever" (1e15 moves ≈ years) until stopped — the button

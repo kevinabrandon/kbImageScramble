@@ -75,9 +75,13 @@ class kbEngine
 
 	void Stop( )	{ m_bStop = true; }
 	bool HaveImage( )	{ return m_bHaveImage; }
-	// Address of the stop flag: lets JS request a stop by writing memory
-	// directly, since Asyncify forbids calling exports while suspended.
-	bool *StopFlag( )	{ return &m_bStop; }
+	// Addresses of live-tunable flags: JS writes these directly mid-run,
+	// since Asyncify forbids calling exports while suspended. The 2008
+	// scramble loop reads both on every iteration, so mode changes take
+	// effect immediately.
+	bool *StopFlag( )		{ return &m_bStop; }
+	bool *SwirlFlag( )		{ return &m_bNewScramble; }
+	bool *DirectionFlag( )	{ return &m_bDirection; }
 
 	int Width( )	{ return m_Image.Width( ); }
 	int Height( )	{ return m_Image.Height( ); }

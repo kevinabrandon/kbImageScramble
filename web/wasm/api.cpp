@@ -99,6 +99,8 @@ EMSCRIPTEN_KEEPALIVE void eng_set_draw( int on, int every, int slow, int delayMs
 // Raw addresses, fetched once at startup: JS reads/writes these through the
 // heap views while the engine is suspended (Asyncify forbids reentry).
 EMSCRIPTEN_KEEPALIVE unsigned char *eng_stop_ptr( )	{ return (unsigned char *) g_Engine.StopFlag( ); }
+EMSCRIPTEN_KEEPALIVE unsigned char *eng_swirl_ptr( )	{ return (unsigned char *) g_Engine.SwirlFlag( ); }
+EMSCRIPTEN_KEEPALIVE unsigned char *eng_direction_ptr( )	{ return (unsigned char *) g_Engine.DirectionFlag( ); }
 EMSCRIPTEN_KEEPALIVE double *eng_count_ptr( )		{ return &g_Engine.m_dCount; }
 EMSCRIPTEN_KEEPALIVE int *eng_pixels_solved_ptr( )	{ return &g_Engine.m_iPixelsSolved; }
 EMSCRIPTEN_KEEPALIVE int *eng_draw_every_ptr( )		{ return &g_Engine.m_iDrawEvery; }
