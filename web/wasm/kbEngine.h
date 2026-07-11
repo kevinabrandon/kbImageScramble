@@ -60,7 +60,9 @@ class kbEngine
 	bool LoadPPM( const char *filename );						// was OpenNewFile (.ppm branch)
 	bool SavePPM( const char *filename );
 
-	void Scramble( int nTimes, bool bSwirl, bool bDirection );
+	// nTimes is double (as the 2008 GetDigitBoxValue was) so counts beyond
+	// int32 -- up to 1e10 from the UI -- work.
+	void Scramble( double nTimes, bool bSwirl, bool bDirection );
 	void Solve( );
 	void FlipSolve( );
 	void StupidSolve( );

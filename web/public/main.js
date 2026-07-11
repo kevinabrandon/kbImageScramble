@@ -51,12 +51,18 @@ function paint() {
   ctx.putImageData(img, 0, 0);
 }
 
+// The engine's move counter is uint32 and wraps at ~4.29e9; detect wraps so
+// 10-billion-move scrambles display correctly.
+let countBase = 0, lastCount = 0;
+
 function updateProgress() {
   const total = canvas.width * canvas.height;
   const solved = Module.HEAP32[ptr.solved >> 2];
-  const count = Module.HEAPU32[ptr.count >> 2];
+  const cur = Module.HEAPU32[ptr.count >> 2];
+  if (cur < lastCount) countBase += 2 ** 32;
+  lastCount = cur;
   $('progress').style.width = total ? `${(100 * solved / total).toFixed(1)}%` : '0%';
-  $('status').textContent = running ? `moves: ${count.toLocaleString()}` : '';
+  $('status').textContent = running ? `moves: ${(countBase + cur).toLocaleString()}` : '';
 }
 
 // Single speed ladder, fastest (right) to slowest (left):
@@ -137,6 +143,8 @@ async function run(name, ...args) {
   if (!Module._eng_have_image()) { log('Open an image first.'); return; }
   const p = speedParams();
   Module._eng_set_draw(1, p.every, 0, p.delay);
+  countBase = 0;
+  lastCount = 0;
   setRunning(true);
   try {
     await Module.ccall(name, null, ['number', 'number', 'number'], args, { async: true });
@@ -145,9 +153,11 @@ async function run(name, ...args) {
   }
 }
 
+// Logarithmic scramble count: slider 1..10 -> 10^1 .. 10^10 moves.
+const scrambleCount = () => Math.pow(10, +$('n').value);
+$('n').oninput = () => { $('nval').textContent = scrambleCount().toLocaleString(); };
 $('scramble').onclick = () => {
-  const n = Math.min(1000000000, Math.max(1, Math.floor(+$('n').value || 1)));
-  run('eng_scramble', n, $('swirl').checked ? 1 : 0, $('direction').checked ? 1 : 0);
+  run('eng_scramble', scrambleCount(), $('swirl').checked ? 1 : 0, $('direction').checked ? 1 : 0);
 };
 $('solve').onclick = () => run('eng_solve');
 $('flip').onclick = () => run('eng_flip_solve');

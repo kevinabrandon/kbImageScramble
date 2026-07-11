@@ -61,14 +61,15 @@
   <a href="https://github.com/kevinabrandon/kbImageScramble">GitHub</a>
 </header>
 <p class="subtitle">A 15-puzzle where every tile is a pixel of a photograph. Scramble a photo
-into noise with up to a billion random tile moves, then hit Solve!! and watch the hole run
+into noise with up to ten billion random tile moves, then hit Solve!! and watch the hole run
 through the image, escorting every pixel back home row by row until the picture reassembles
 itself. Drop any image below (or a <code>.ppm</code>) to start.</p>
 
 <fieldset>
   <legend>Scramble</legend>
-  <label>Number of Scrambles
-    <input id="n" type="number" min="1" max="1000000000" step="1" value="100000">
+  <label>Scrambles
+    <input id="n" type="range" min="1" max="10" step="1" value="5">
+    <span id="nval">100,000</span>
   </label>
   <label><input id="swirl" type="checkbox"> Swirl</label>
   <label><input id="direction" type="checkbox"> Toggle Direction</label>

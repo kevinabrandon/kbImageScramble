@@ -53,7 +53,7 @@ EMSCRIPTEN_KEEPALIVE int eng_save_ppm( const char *path )
 	return g_Engine.SavePPM( path ) ? 1 : 0;
 }
 
-EMSCRIPTEN_KEEPALIVE void eng_scramble( int n, int swirl, int direction )
+EMSCRIPTEN_KEEPALIVE void eng_scramble( double n, int swirl, int direction )
 {
 	g_Engine.Scramble( n, swirl != 0, direction != 0 );
 }

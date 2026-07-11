@@ -254,7 +254,7 @@ bool kbEngine::SavePPM( const char *filename )
 	return m_Image.WritePPM( filename );
 }
 
-void kbEngine::Scramble( int nTimes, bool bSwirl, bool bDirection )
+void kbEngine::Scramble( double nTimes, bool bSwirl, bool bDirection )
 {
 	if( !m_bHaveImage ) return;
 
@@ -270,7 +270,8 @@ void kbEngine::Scramble( int nTimes, bool bSwirl, bool bDirection )
 
 	int iSuggestion = 0;
 	double dStart = EngineNow( );
-	for( int i = 0; i < nTimes; i++ )
+	double i;
+	for( i = 0; i < nTimes; i++ )
 	{
 		if( m_bStop ) break;
 
@@ -320,7 +321,7 @@ void kbEngine::Scramble( int nTimes, bool bSwirl, bool bDirection )
 	mInt iMaxDistance = m_ScramblerMap.GetMaxDistance( );
 	char Message[ 1024 ];
 
-	snprintf( Message, 1024, "%i Scrambles in %i:%i:%.3f", m_iCount, iHours, iMin, dSeconds );
+	snprintf( Message, 1024, "%.0f Scrambles in %i:%i:%.3f", i, iHours, iMin, dSeconds );
 	EngineLog( Message );
 	snprintf( Message, 1024, "Pixel Distance: Avg: %.3f, Max: %i, Min: %i", dAvgDistance, iMaxDistance, iMinDistance );
 	EngineLog( Message );
