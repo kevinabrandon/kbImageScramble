@@ -16,7 +16,7 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 
-SIZES = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
+SIZES = [1024]  # smaller boards come from the app Resize slider now
 
 
 def hsl_to_rgb(h, s, l):

@@ -304,6 +304,7 @@ function setSource(rgba, w, h) {
 
 async function openFile(file) {
   if (running) return;
+  let rgba, w, h;
   if (file.name.toLowerCase().endsWith('.ppm')) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     Module.FS.writeFile('/in.ppm', bytes);
@@ -312,8 +313,9 @@ async function openFile(file) {
     Module._free(path);
     if (!ok) { log(`Unable To Open File: ${file.name}`); return; }
     // Snapshot the loaded PPM back out of the engine as the full-res source.
-    const w = Module._eng_width(), h = Module._eng_height();
-    const rgba = new Uint8ClampedArray(w * h * 4);
+    w = Module._eng_width();
+    h = Module._eng_height();
+    rgba = new Uint8ClampedArray(w * h * 4);
     let src = Module._eng_pixels();
     const rgb = Module.HEAPU8;
     for (let i = 0, o = 0; i < w * h; i++, o += 4) {
@@ -322,18 +324,38 @@ async function openFile(file) {
       rgba[o + 2] = rgb[src++];
       rgba[o + 3] = 255;
     }
-    setSource(rgba, w, h);
   } else {
     const bmp = await createImageBitmap(file);
     const off = new OffscreenCanvas(bmp.width, bmp.height);
     const octx = off.getContext('2d');
     octx.drawImage(bmp, 0, 0);
-    const rgba = octx.getImageData(0, 0, bmp.width, bmp.height).data;
-    setSource(rgba, bmp.width, bmp.height);
-    loadIntoEngine(rgba, bmp.width, bmp.height);
+    rgba = octx.getImageData(0, 0, bmp.width, bmp.height).data;
+    w = bmp.width;
+    h = bmp.height;
   }
+
+  // Cap huge inputs: the working copy never exceeds 2048 on the long side.
+  if (Math.max(w, h) > 2048) {
+    const scale = 2048 / Math.max(w, h);
+    const nw = Math.round(w * scale), nh = Math.round(h * scale);
+    rgba = await downsample(rgba, w, h, nw, nh);
+    log(`Reduced ${w}x${h} image to ${nw}x${nh} (2048 max)`);
+    w = nw;
+    h = nh;
+  }
+
+  setSource(rgba, w, h);
   log(`Opened File: ${file.name}`);
-  showCanvas(Module._eng_width(), Module._eng_height());
+
+  // Big boards open at ~512 (nearest Resize stop) — slide right for full size.
+  if (Math.min(w, h) > 512) {
+    $('res').value = Math.round(100 * Math.log(512 / 4) / Math.log(Math.min(w, h) / 4));
+    updateResReadout();
+    await applyResolution();
+  } else {
+    loadIntoEngine(rgba, w, h);
+    showCanvas(w, h);
+  }
 }
 
 $('open').onclick = () => $('file').click();
@@ -377,22 +399,16 @@ log('Engine: original 2008 C++ via WebAssembly.');
 log(' ');
 
 // ?demo — load the bundled 2008 test image (kevin.ppm) and scramble it.
-// &res=N — decimate to N pixels on the short side (e.g. ?demo&res=8).
-// ?img=N — load the NxN gradient test image (e.g. ?img=64), no scramble.
+// ?img — load the gradient board instead.
+// &res=N — resize whatever loaded to N pixels on the short side.
 const params = new URLSearchParams(location.search);
-if (params.has('img')) {
-  const n = +params.get('img');
-  if ([4, 8, 16, 32, 64, 128, 256, 512, 1024].includes(n)) await openUrl(`gradients/grad-${n}.png`);
+if (params.has('img')) await openUrl('gradients/grad-1024.png');
+else if (params.has('demo')) await openUrl('kevin.ppm');
+if (source && params.has('res')) {
+  const short = Math.max(4, Math.min(Math.min(source.w, source.h), +params.get('res') || 4));
+  const S = Math.min(source.w, source.h);
+  $('res').value = Math.round(100 * Math.log(short / 4) / Math.log(S / 4)) || 0;
+  updateResReadout();
+  await applyResolution();
 }
-if (params.has('demo')) {
-  const blob = await (await fetch('kevin.ppm')).blob();
-  await openFile(new File([blob], 'kevin.ppm'));
-  if (params.has('res')) {
-    const short = Math.max(4, Math.min(Math.min(source.w, source.h), +params.get('res') || 4));
-    const S = Math.min(source.w, source.h);
-    $('res').value = Math.round(100 * Math.log(short / 4) / Math.log(S / 4)) || 0;
-    updateResReadout();
-    await applyResolution();
-  }
-  $('scramble').click();
-}
+if (params.has('demo')) $('scramble').click();

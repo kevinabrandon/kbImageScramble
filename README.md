@@ -17,10 +17,11 @@ million moves at full tilt down to every single move with up to 128 ms between t
 (it auto-sets to fit the board size) — and the **Resize** slider drops the photo's
 resolution — all the way down to 4 pixels on the short side, a
 true 15-puzzle — so you can watch the solver work tile by tile, then slide back up to
-restore the full photo. A **Load Preset** menu offers a kbToyTracer render, the original
-2008 test photo, and smooth hue/lightness gradient boards from 4×4 up to 1024×1024
-(`?img=64` links straight to one). Arrow keys move the hole by hand when the image is
-focused, and large tiles show their 15-puzzle numbers.
+restore the full photo — big images open pre-shrunk to ~512 (slide right for full size,
+which caps at 2048). A **Load Preset** menu offers a kbToyTracer render, the original
+2008 test photo, and a smooth hue/lightness gradient board (`?img` deep-links it).
+Arrow keys move the hole by hand when the image is focused, and large tiles show their
+15-puzzle numbers.
 
 ## History
 
