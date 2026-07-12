@@ -90,6 +90,9 @@ class kbEngine
 	// 2026: home position of the pixel currently at (x,y) -- its tile number.
 	kbPoint Home( int x, int y )	{ return m_ScramblerMap.GetPoint( x, y ); }
 
+	// 2026: where the hole currently sits (for click-to-move adjacency).
+	kbPoint Hole( )	{ return m_HoleLocation; }
+
 	// 2026: true when every pixel is home (early-outs on first mismatch).
 	bool IsSolved( )
 	{

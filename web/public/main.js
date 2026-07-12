@@ -258,6 +258,26 @@ $('canvasbox').addEventListener('keydown', (e) => {
   moveHole(dirs[e.key]);
 });
 
+// Clicking a tile orthogonally adjacent to the hole slides it into the hole
+// (i.e. moves the hole onto the clicked tile), like tapping a real 15-puzzle.
+canvas.addEventListener('click', (e) => {
+  if (running || !Module._eng_have_image()) return;
+  const w = canvas.width, h = canvas.height;
+  // Same letterbox mapping as drawNumbers: object-fit: contain centers the
+  // image inside the element box.
+  const rect = canvas.getBoundingClientRect();
+  const scale = Math.min(rect.width / w, rect.height / h);
+  const x = Math.floor((e.clientX - rect.left - (rect.width - w * scale) / 2) / scale);
+  const y = Math.floor((e.clientY - rect.top - (rect.height - h * scale) / 2) / scale);
+  if (x < 0 || x >= w || y < 0 || y >= h) return; // letterbox band
+  const dx = x - Module._eng_hole_x(), dy = y - Module._eng_hole_y();
+  // Engine direction codes move the hole: 0 => y-1, 1 => y+1, 2 => x-1, 3 => x+1.
+  if (dx === 0 && dy === -1) moveHole(0);
+  else if (dx === 0 && dy === 1) moveHole(1);
+  else if (dy === 0 && dx === -1) moveHole(2);
+  else if (dy === 0 && dx === 1) moveHole(3);
+});
+
 $('speed').oninput = applySpeed;
 applySpeed();
 

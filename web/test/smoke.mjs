@@ -104,10 +104,16 @@ Module._eng_solve();
 // it. (The board was just solved, so the hole sits bottom-right — moving
 // right there is a boundary no-op, which is itself correct behavior.)
 const before = snapshot();
+check('hole position reports bottom-right on solved board',
+  Module._eng_hole_x() === W - 1 && Module._eng_hole_y() === H - 1,
+  `hole=(${Module._eng_hole_x()},${Module._eng_hole_y()})`);
 Module._eng_move_hole(3); // right (x+1): blocked at boundary
 check('manual move into the boundary is a no-op', diffCount(before, snapshot()) === 0);
 Module._eng_move_hole(2); // left (x-1)
 check('manual move changes the image', diffCount(before, snapshot()) > 0);
+check('hole position tracks the move',
+  Module._eng_hole_x() === W - 2 && Module._eng_hole_y() === H - 1,
+  `hole=(${Module._eng_hole_x()},${Module._eng_hole_y()})`);
 Module._eng_move_hole(3); // right (x+1)
 check('manual move round-trip restores the image', diffCount(before, snapshot()) === 0);
 
