@@ -152,12 +152,16 @@ async function run(name, ...args) {
   const p = speedParams();
   Module._eng_set_draw(1, p.every, 0, p.delay);
   currentOp = name;
+  resetHand();
   setRunning(true);
   try {
     await Module.ccall(name, null, ['number', 'number', 'number'], args, { async: true });
   } finally {
     currentOp = null;
     setRunning(false);
+    // A finished scramble arms the hand-solve timer: the first manual move
+    // after it starts the clock.
+    handArmed = name === 'eng_scramble';
   }
 }
 
@@ -235,17 +239,56 @@ function confetti() {
   })(t0);
 }
 
+// --- Hand-solve stats ---
+// Armed when a scramble run ends; the first manual move after that starts a
+// timer and move counter, ticking live in the status line. Any engine run
+// (scramble or a solver) or a new/resized board resets it.
+let handArmed = false;
+let hand = null; // { t0, moves, tick }
+
+function resetHand() {
+  handArmed = false;
+  if (hand) clearInterval(hand.tick);
+  hand = null;
+}
+
+function fmtElapsed(ms) {
+  const s = ms / 1000;
+  const m = Math.floor(s / 60);
+  return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`;
+}
+
+function handStatus() {
+  if (hand) $('status').textContent =
+    `solving by hand: ${hand.moves.toLocaleString()} moves · ${fmtElapsed(performance.now() - hand.t0)}`;
+}
+
 // Manual hole moves. Engine direction codes: 0 => y-1 (screen up),
 // 1 => y+1 (down), 2 => x-1 (left), 3 => x+1 (right).
 function moveHole(dir) {
   if (running || !Module._eng_have_image()) return;
   const wasSolved = Module._eng_is_solved();
+  const hx = Module._eng_hole_x(), hy = Module._eng_hole_y();
   Module._eng_move_hole(dir);
+  const moved = Module._eng_hole_x() !== hx || Module._eng_hole_y() !== hy;
   paint();
   drawNumbers();
+  if (moved && handArmed && !hand)
+    hand = { t0: performance.now(), moves: 0, tick: setInterval(handStatus, 100) };
+  if (moved && hand) {
+    hand.moves++;
+    handStatus();
+  }
   if (!wasSolved && Module._eng_is_solved()) {
     confetti();
-    log('Solved by hand!');
+    if (hand) {
+      const stats = `${hand.moves.toLocaleString()} moves in ${fmtElapsed(performance.now() - hand.t0)}`;
+      log(`Solved by hand! ${stats}`);
+      resetHand();
+      $('status').textContent = `solved by hand: ${stats}`;
+    } else {
+      log('Solved by hand!');
+    }
     log(' ');
   }
 }
@@ -302,6 +345,7 @@ function showCanvas(w, h) {
 }
 
 function loadIntoEngine(rgba, w, h) {
+  resetHand(); // new/resized board: any hand-solve in progress is void
   const buf = Module._malloc(rgba.length);
   Module.HEAPU8.set(rgba, buf);
   Module._eng_load_rgba(buf, w, h);

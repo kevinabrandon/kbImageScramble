@@ -27,7 +27,8 @@ restore the full photo — big images open pre-shrunk to ~512 (slide right for f
 which caps at 2048). A **Load Preset** menu offers a kbToyTracer render, the original
 2008 test photo, and a smooth hue/lightness gradient board (`?img` deep-links it).
 Play it by hand, too: arrow keys move the hole when the image is focused, clicking a
-tile next to the hole slides it in, and large tiles show their 15-puzzle numbers.
+tile next to the hole slides it in, and large tiles show their 15-puzzle numbers —
+solve a scrambled board yourself and it counts your moves and time.
 
 ## History
 
