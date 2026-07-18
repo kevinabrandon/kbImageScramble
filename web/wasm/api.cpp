@@ -81,6 +81,10 @@ EMSCRIPTEN_KEEPALIVE int eng_home_index( int x, int y )
 	return p.y * g_Engine.Width( ) + p.x;
 }
 
+// Current hole position, for click-to-move adjacency checks in the UI.
+EMSCRIPTEN_KEEPALIVE int eng_hole_x( )	{ return g_Engine.Hole( ).x; }
+EMSCRIPTEN_KEEPALIVE int eng_hole_y( )	{ return g_Engine.Hole( ).y; }
+
 EMSCRIPTEN_KEEPALIVE double eng_count( )			{ return g_Engine.m_dCount; }
 EMSCRIPTEN_KEEPALIVE int eng_pixels_solved( )		{ return g_Engine.m_iPixelsSolved; }
 EMSCRIPTEN_KEEPALIVE double eng_avg_distance( )		{ return g_Engine.AvgDistance( ); }
